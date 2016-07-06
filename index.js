@@ -33,10 +33,10 @@ const check = function(delta, compare, update = false){
  * @param {boolean} update Force an update of this.position
  */
 const watch = {
-  scroll: function(delta, update){
+  scroll(delta, update){
     check.call(this, delta, window.scrollY, update)
   },
-  resize: function(delta, update){
+  resize(delta, update){
     check.call(this, delta, window.outerWidth, update)
   }
 }
@@ -46,16 +46,16 @@ const watch = {
  * to the return value of create()
  */
 const proto = {
-  update: function(){
+  update(){
     watch[this.type].call(this, this.delta, true)
     return this
   },
-  init: function(){
+  init(){
     this.handler = watch[this.type].bind(this, this.delta, false)
     window.addEventListener(this.type, this.handler)
     return this
   },
-  destroy: function(){
+  destroy(){
     window.removeEventListener(this.type, this.handler)
     this.off(OVER)
     this.off(UNDER)
@@ -88,10 +88,10 @@ const create = (delta, type) => {
  * @param {integer} delta Scroll/resize limit in pixels
  */
 export default {
-  scroll: (delta) => {
+  scroll(delta){
     return create(delta, 'scroll')  
   },
-  resize: (delta) => {
+  resize(delta){
     return create(delta, 'resize')  
   }
 }
