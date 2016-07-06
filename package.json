@@ -1,6 +1,6 @@
 {
   "name": "overunder",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Lets you know where you're at.",
   "main": "dist/overunder.js",
   "scripts": {
