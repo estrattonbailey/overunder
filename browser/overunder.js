@@ -51,7 +51,7 @@ var check = function check(delta, compare, target) {
  */
 var watch = {
   scroll: function scroll(delta, target, update) {
-    var compare = target.scrollY || target.scrollYOffset;
+    var compare = target.scrollY || target.pageYOffset;
     check.call(this, delta, compare, window, update);
   },
   resize: function resize(delta, target, update) {
