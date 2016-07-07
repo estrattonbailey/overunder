@@ -7,8 +7,8 @@ Create an instance, attach listeners, and then initiate it to listen for events 
 ### overunder.scroll(position)
 Creates a scroll listener for a pixel value, `position`, and returns an instance object.
 
-### overunder.resize(position)
-Creates a resize listener for a pixel value, `position`, and returns an instance object.
+### overunder.resize(position[, element])
+Creates a resize listener for a pixel value, `position`, on the `window` object or an option element and returns an instance object.
 
 ```javascript
 // create an instance
@@ -31,6 +31,12 @@ const resizer = overunder.resize(1200)
 
 resizer.on('over', () => {
   // large screens
+})
+
+const element = overunder.resize(500, document.getElementById('elementQuery'))
+
+element.on('under', () => {
+  // element is less than 500px wide
 })
 ```
 

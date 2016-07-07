@@ -12,15 +12,19 @@ const UNDER = 'under'
  * @param {boolean} update Force an update of this.position
  */
 const check = function(delta, compare, update = false){
+  let triggered = false
+
   if (compare >= delta && this.position !== OVER){
     this.position = OVER
     this.emit(this.position)
+    triggered = true
   } else if (compare < delta && this.position === OVER) {
     this.position = UNDER
     this.emit(this.position)
+    triggered = true
   }
 
-  if (update){
+  if (update === true && !triggered){
     this.position = compare >= delta ? OVER : UNDER
     this.emit(this.position)
   }
@@ -33,11 +37,12 @@ const check = function(delta, compare, update = false){
  * @param {boolean} update Force an update of this.position
  */
 const watch = {
-  scroll(delta, update){
+  scroll(delta, target, update){
     check.call(this, delta, window.scrollY, update)
   },
-  resize(delta, update){
-    check.call(this, delta, window.outerWidth, update)
+  resize(delta, target, update){
+    let compare = target.offsetWidth || target.outerWidth
+    check.call(this, delta, compare, update)
   }
 }
 
@@ -47,11 +52,11 @@ const watch = {
  */
 const proto = {
   update(){
-    watch[this.type].call(this, this.delta, true)
+    watch[this.type].call(this, this.delta, this.target, true)
     return this
   },
   init(){
-    this.handler = watch[this.type].bind(this, this.delta, false)
+    this.handler = watch[this.type].bind(this, this.delta, this.target)
     window.addEventListener(this.type, this.handler)
     return this
   },
@@ -69,7 +74,7 @@ const proto = {
  * @param {integer} delta Scroll/resize limit in pixels
  * @param {string} type Either scroll or resize
  */
-const create = (delta, type) => {
+const create = (delta, type, target) => {
   return Object.create(knot(proto), {
     type: {
       value: type 
@@ -80,6 +85,9 @@ const create = (delta, type) => {
     position: {
       value: UNDER,
       writable: true
+    },
+    target: {
+      value: target || window
     }
   })
 }
@@ -91,7 +99,7 @@ export default {
   scroll(delta){
     return create(delta, 'scroll')  
   },
-  resize(delta){
-    return create(delta, 'resize')  
+  resize(delta, target){
+    return create(delta, 'resize', target)  
   }
 }

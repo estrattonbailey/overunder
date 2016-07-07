@@ -25,15 +25,19 @@ var UNDER = 'under';
 var check = function check(delta, compare) {
   var update = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
+  var triggered = false;
+
   if (compare >= delta && this.position !== OVER) {
     this.position = OVER;
     this.emit(this.position);
+    triggered = true;
   } else if (compare < delta && this.position === OVER) {
     this.position = UNDER;
     this.emit(this.position);
+    triggered = true;
   }
 
-  if (update) {
+  if (update === true && !triggered) {
     this.position = compare >= delta ? OVER : UNDER;
     this.emit(this.position);
   }
@@ -46,11 +50,12 @@ var check = function check(delta, compare) {
  * @param {boolean} update Force an update of this.position
  */
 var watch = {
-  scroll: function scroll(delta, update) {
+  scroll: function scroll(delta, target, update) {
     check.call(this, delta, window.scrollY, update);
   },
-  resize: function resize(delta, update) {
-    check.call(this, delta, window.outerWidth, update);
+  resize: function resize(delta, target, update) {
+    var compare = target.offsetWidth || target.outerWidth;
+    check.call(this, delta, compare, update);
   }
 };
 
@@ -60,11 +65,11 @@ var watch = {
  */
 var proto = {
   update: function update() {
-    watch[this.type].call(this, this.delta, true);
+    watch[this.type].call(this, this.delta, this.target, true);
     return this;
   },
   init: function init() {
-    this.handler = watch[this.type].bind(this, this.delta, false);
+    this.handler = watch[this.type].bind(this, this.delta, this.target);
     window.addEventListener(this.type, this.handler);
     return this;
   },
@@ -82,7 +87,7 @@ var proto = {
  * @param {integer} delta Scroll/resize limit in pixels
  * @param {string} type Either scroll or resize
  */
-var create = function create(delta, type) {
+var create = function create(delta, type, target) {
   return Object.create((0, _knot2.default)(proto), {
     type: {
       value: type
@@ -93,6 +98,9 @@ var create = function create(delta, type) {
     position: {
       value: UNDER,
       writable: true
+    },
+    target: {
+      value: target || window
     }
   });
 };
@@ -104,8 +112,8 @@ exports.default = {
   scroll: function scroll(delta) {
     return create(delta, 'scroll');
   },
-  resize: function resize(delta) {
-    return create(delta, 'resize');
+  resize: function resize(delta, target) {
+    return create(delta, 'resize', target);
   }
 };
 
