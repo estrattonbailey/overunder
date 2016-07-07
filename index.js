@@ -38,7 +38,8 @@ const check = function(delta, compare, target, update = false){
  */
 const watch = {
   scroll(delta, target, update){
-    check.call(this, delta, window.scrollY, window, update)
+    let compare = target.scrollY || target.scrollYOffset
+    check.call(this, delta, compare, window, update)
   },
   resize(delta, target, update){
     let compare = target.offsetWidth || target.outerWidth

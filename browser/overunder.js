@@ -22,24 +22,24 @@ var UNDER = 'under';
  * @param {integer} compare window.scrollY/outerWidth
  * @param {boolean} update Force an update of this.position
  */
-var check = function check(delta, compare) {
-  var update = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+var check = function check(delta, compare, target) {
+  var update = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
   var triggered = false;
 
   if (compare >= delta && this.position !== OVER) {
     this.position = OVER;
-    this.emit(this.position);
+    this.emit(this.position, target);
     triggered = true;
   } else if (compare < delta && this.position === OVER) {
     this.position = UNDER;
-    this.emit(this.position);
+    this.emit(this.position, target);
     triggered = true;
   }
 
   if (update === true && !triggered) {
     this.position = compare >= delta ? OVER : UNDER;
-    this.emit(this.position);
+    this.emit(this.position, target);
   }
 };
 
@@ -51,11 +51,12 @@ var check = function check(delta, compare) {
  */
 var watch = {
   scroll: function scroll(delta, target, update) {
-    check.call(this, delta, window.scrollY, update);
+    var compare = target.scrollY || target.scrollYOffset;
+    check.call(this, delta, compare, window, update);
   },
   resize: function resize(delta, target, update) {
     var compare = target.offsetWidth || target.outerWidth;
-    check.call(this, delta, compare, update);
+    check.call(this, delta, compare, target, update);
   }
 };
 
