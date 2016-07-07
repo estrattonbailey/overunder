@@ -11,22 +11,22 @@ const UNDER = 'under'
  * @param {integer} compare window.scrollY/outerWidth
  * @param {boolean} update Force an update of this.position
  */
-const check = function(delta, compare, update = false){
+const check = function(delta, compare, target, update = false){
   let triggered = false
 
   if (compare >= delta && this.position !== OVER){
     this.position = OVER
-    this.emit(this.position)
+    this.emit(this.position, target)
     triggered = true
   } else if (compare < delta && this.position === OVER) {
     this.position = UNDER
-    this.emit(this.position)
+    this.emit(this.position, target)
     triggered = true
   }
 
   if (update === true && !triggered){
     this.position = compare >= delta ? OVER : UNDER
-    this.emit(this.position)
+    this.emit(this.position, target)
   }
 }
 
@@ -38,11 +38,11 @@ const check = function(delta, compare, update = false){
  */
 const watch = {
   scroll(delta, target, update){
-    check.call(this, delta, window.scrollY, update)
+    check.call(this, delta, window.scrollY, window, update)
   },
   resize(delta, target, update){
     let compare = target.offsetWidth || target.outerWidth
-    check.call(this, delta, compare, update)
+    check.call(this, delta, compare, target, update)
   }
 }
 
