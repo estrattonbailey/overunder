@@ -11,7 +11,7 @@ const UNDER = 'under'
  * @param {integer} compare window.scrollY/outerWidth
  * @param {boolean} update Force an update of this.position
  */
-const check = function(delta, compare, target, update = false){
+const check = function(delta, target, compare, update = false){
   let triggered = false
 
   if (compare >= delta && this.position !== OVER){
@@ -39,11 +39,11 @@ const check = function(delta, compare, target, update = false){
 const watch = {
   scroll(delta, target, update){
     let compare = target.scrollY || target.pageYOffset
-    check.call(this, delta, compare, window, update)
+    check.call(this, delta, window, compare, update)
   },
   resize(delta, target, update){
     let compare = target.offsetWidth || target.outerWidth
-    check.call(this, delta, compare, target, update)
+    check.call(this, delta, target, compare, update)
   }
 }
 
@@ -65,6 +65,7 @@ const proto = {
     window.removeEventListener(this.type, this.handler)
     this.off(OVER)
     this.off(UNDER)
+    return false
   }
 }
 
@@ -75,20 +76,20 @@ const proto = {
  * @param {integer} delta Scroll/resize limit in pixels
  * @param {string} type Either scroll or resize
  */
-const create = (delta, type, target) => {
+function create(type, delta, target = window){
   return Object.create(knot(proto), {
     type: {
       value: type 
-    },
-    delta: {
-      value: delta
     },
     position: {
       value: UNDER,
       writable: true
     },
     target: {
-      value: target || window
+      value: target
+    },
+    delta: {
+      value: delta
     }
   })
 }
@@ -98,9 +99,9 @@ const create = (delta, type, target) => {
  */
 export default {
   scroll(delta){
-    return create(delta, 'scroll')  
+    return create('scroll', delta)  
   },
   resize(delta, target){
-    return create(delta, 'resize', target)  
+    return create('resize', delta, target)  
   }
 }

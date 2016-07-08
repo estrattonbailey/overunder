@@ -22,7 +22,7 @@ var UNDER = 'under';
  * @param {integer} compare window.scrollY/outerWidth
  * @param {boolean} update Force an update of this.position
  */
-var check = function check(delta, compare, target) {
+var check = function check(delta, target, compare) {
   var update = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
   var triggered = false;
@@ -52,11 +52,11 @@ var check = function check(delta, compare, target) {
 var watch = {
   scroll: function scroll(delta, target, update) {
     var compare = target.scrollY || target.pageYOffset;
-    check.call(this, delta, compare, window, update);
+    check.call(this, delta, window, compare, update);
   },
   resize: function resize(delta, target, update) {
     var compare = target.offsetWidth || target.outerWidth;
-    check.call(this, delta, compare, target, update);
+    check.call(this, delta, target, compare, update);
   }
 };
 
@@ -78,6 +78,7 @@ var proto = {
     window.removeEventListener(this.type, this.handler);
     this.off(OVER);
     this.off(UNDER);
+    return false;
   }
 };
 
@@ -88,33 +89,35 @@ var proto = {
  * @param {integer} delta Scroll/resize limit in pixels
  * @param {string} type Either scroll or resize
  */
-var create = function create(delta, type, target) {
+function create(type, delta) {
+  var target = arguments.length <= 2 || arguments[2] === undefined ? window : arguments[2];
+
   return Object.create((0, _knot2.default)(proto), {
     type: {
       value: type
-    },
-    delta: {
-      value: delta
     },
     position: {
       value: UNDER,
       writable: true
     },
     target: {
-      value: target || window
+      value: target
+    },
+    delta: {
+      value: delta
     }
   });
-};
+}
 
 /**
  * @param {integer} delta Scroll/resize limit in pixels
  */
 exports.default = {
   scroll: function scroll(delta) {
-    return create(delta, 'scroll');
+    return create('scroll', delta);
   },
   resize: function resize(delta, target) {
-    return create(delta, 'resize', target);
+    return create('resize', delta, target);
   }
 };
 
