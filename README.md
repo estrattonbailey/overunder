@@ -2,24 +2,48 @@
 A tiny helper that let's you know when you're over or under a specified scroll position or viewport width.
 
 ## Usage 
-Create an instance, attach listeners, and then initiate it to listen for events above and below a specified value – 'under' and 'over', respectively.
+Create an instance, attach listeners, and then initiate it to listen for events `above`, `below` or `between` user specified values.
 
-### overunder.scroll(position)
-Creates a scroll listener for a pixel value, `position`, and returns an instance object.
+## API
+### overunder.scroll(delta[, range, options])
+### overunder.resize(delta[, range, options])
 
-### overunder.resize(position[, element])
-Creates a resize listener for a pixel value, `position`, on the `window` object or an option element and returns an instance object.
+## Parameters
+#### `delta`
+First threshold value to watch. You can also pass an DOM node and Overunder will calculate its offset value.
+#### `range` - optional
+Second threshold value to watch. Just like `delta`, you can pass a DOM node.
+
+## Options
+There are a few configuration options you can override.
+```javascript
+const options = {
+  context: window,
+  enterBottom: false,
+  watchResize: false
+}
+```
+#### `options.context` - optional, works with `resize()` only currently
+Watch a specific element's width change instead of the window.
+#### `options.enterBottom` - optional
+Fire events when threshold enters the bottom of the screen. Defaults to `false` - fires events when threshold reaches top of screen.
+#### `options.watchResize` - optional
+On resize, recalculate the positions of `delta` and `range` and update positioning to fire events. **Don't enable this with `resize()`, only use with `scroll()`**.
 
 ```javascript
 // create an instance
-const scroller = overunder.scroll(1000)
+const anchor = document.getElementById('anchor')
+const scroller = overunder.scroll(1000, anchor, { watchResize: true })
 
 // attach listeners
 scroller.on('under', () => {
   // under 1000px
 })
+scroller.on('between', () => {
+  // above 1000px and below anchor offset top
+})
 scroller.on('over', () => {
-  // over 1000px
+  // over anchor offset top
 })
 
 // initiate instance, check scroll position
