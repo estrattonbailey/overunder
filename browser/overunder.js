@@ -13,113 +13,215 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var OVER = 'over';
 var UNDER = 'under';
+var BETWEEN = 'between';
 
 /**
- * Compare a variable value i.e. scrollY with
- * the user-passed delta value.
- *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {integer} compare window.scrollY/outerWidth
- * @param {boolean} update Force an update of this.position
+ * Object.assign fallback
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
  */
-var check = function check(delta, target, compare) {
-  var update = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+if ('function' != typeof Object.assign) {
+  Object.assign = function (target) {
+    'use strict';
 
-  var triggered = false;
-
-  if (compare >= delta && this.position !== OVER) {
-    this.position = OVER;
-    this.emit(this.position, target);
-    triggered = true;
-  } else if (compare < delta && this.position === OVER) {
-    this.position = UNDER;
-    this.emit(this.position, target);
-    triggered = true;
-  }
-
-  if (update === true && !triggered) {
-    this.position = compare >= delta ? OVER : UNDER;
-    this.emit(this.position, target);
-  }
-};
-
-/**
- * Namespace for scroll/resize handlers
- *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {boolean} update Force an update of this.position
- */
-var watch = {
-  scroll: function scroll(delta, target, update) {
-    var compare = target.scrollY || target.pageYOffset;
-    check.call(this, delta, window, compare, update);
-  },
-  resize: function resize(delta, target, update) {
-    var compare = target.offsetWidth || target.outerWidth;
-    check.call(this, delta, target, compare, update);
-  }
-};
-
-/**
- * Public prototype methods that will be attached
- * to the return value of create()
- */
-var proto = {
-  update: function update() {
-    watch[this.type].call(this, this.delta, this.target, true);
-    return this;
-  },
-  init: function init() {
-    this.handler = watch[this.type].bind(this, this.delta, this.target);
-    window.addEventListener(this.type, this.handler);
-    return this;
-  },
-  destroy: function destroy() {
-    window.removeEventListener(this.type, this.handler);
-    this.off(OVER);
-    this.off(UNDER);
-    return false;
-  }
-};
-
-/**
- * Create instance with user-passed
- * values and prototypes
- *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {string} type Either scroll or resize
- */
-function create(type, delta) {
-  var target = arguments.length <= 2 || arguments[2] === undefined ? window : arguments[2];
-
-  return Object.create((0, _knot2.default)(proto), {
-    type: {
-      value: type
-    },
-    position: {
-      value: UNDER,
-      writable: true
-    },
-    target: {
-      value: target
-    },
-    delta: {
-      value: delta
+    if (target == null) {
+      throw new TypeError('Cannot convert undefined or null to object');
     }
-  });
+
+    target = Object(target);
+    for (var index = 1; index < arguments.length; index++) {
+      var source = arguments[index];
+      if (source != null) {
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+          }
+        }
+      }
+    }
+
+    return target;
+  };
 }
 
 /**
- * @param {integer} delta Scroll/resize limit in pixels
+ * Define optional props on the 
+ * instance object
+ *
+ * @param {object} target The overunder instance
+ * @param {object|number} prop The optional arguments passed to initializer
  */
-exports.default = {
-  scroll: function scroll(delta) {
-    return create('scroll', delta);
-  },
-  resize: function resize(delta, target) {
-    return create('resize', delta, target);
+var addProps = function addProps(target, prop) {
+  var isNode = prop.nodeType ? true : false;
+  var isNumber = 'number' === typeof prop ? true : false;
+
+  var key = isNumber || isNode ? 'range' : 'options';
+
+  if (isNode || isNumber) {
+    Object.defineProperty(target, key, {
+      value: prop
+    });
+  } else if (!isNode) {
+    Object.assign(target.options, prop);
   }
 };
+
+/**
+ * Instance factory
+ *
+ * @param {string} type Either 'scroll' or 'resize'
+ * @param {object|number} delta First (required) threshold
+ * @param {...array} args Optional args
+ */
+var instance = function instance(type, delta) {
+  for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+
+  var instance = void 0;
+
+  /**
+   * Public API
+   */
+  var proto = (0, _knot2.default)({
+    init: function init() {
+      window.addEventListener(type, checkPosition);
+      if (instance.options.watchResize) window.addEventListener('resize', instance.update);
+      return instance;
+    },
+    update: function update() {
+      checkPosition(true);
+    },
+    destroy: function destroy() {
+      window.removeEventListener(type, checkPosition);
+      window.removeEventListener('resize', instance.update);
+    }
+  });
+
+  /**
+   * Create prototypes and defaults
+   */
+  instance = Object.create(proto, {
+    delta: {
+      value: delta
+    },
+    options: {
+      value: {
+        context: window,
+        watchResize: false,
+        enterBottom: false
+      },
+      writable: true
+    }
+  });
+
+  /**
+   * Add optional props to instance object
+   */
+  for (var i = 0; i < args.length; i++) {
+    if (args[i]) addProps(instance, args[i]);
+  }
+
+  /**
+   * Return instance!
+   */
+  return instance;
+
+  /**
+   * Utils
+   */
+
+  /**
+   * Fired on scroll/update
+   *
+   * @param {boolean} force Checks immediately
+   */
+  function checkPosition() {
+    var force = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+
+    var checked = false;
+
+    var isScroll = type === 'scroll' ? true : false;
+
+    // Cache values
+    var viewport = document.documentElement.clientHeight;
+    var scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false;
+    var resizeDelta = !isScroll ? instance.options.context.offsetWidth || instance.options.context.outerWidth : false;
+
+    // What to compare delta/range values to
+    var compare = isScroll ? scrollDelta : resizeDelta;
+
+    // Cache delta or calculate delta
+    var delta = void 0;
+    var range = void 0;
+    if (isScroll) {
+      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.getBoundingClientRect().top + scrollDelta;
+      range = 'number' === typeof instance.range ? instance.range : instance.range.getBoundingClientRect().top + scrollDelta;
+    } else {
+      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.offsetWidth || instance.delta.outerWidth;
+      range = 'number' === typeof instance.range ? instance.range : instance.range.offsetWidth || instance.range.outerWidth;
+    }
+
+    // If enterBottom, subtract viewport
+    if (instance.options.enterBottom) {
+      delta = delta - viewport;
+      range = range - viewport;
+    }
+
+    var notUnder = instance.position !== UNDER;
+    var notOver = instance.position !== OVER;
+    var notBetween = instance.position !== BETWEEN;
+
+    var underDelta = compare < delta;
+    var overDelta = compare >= delta;
+
+    var underRange = compare < range;
+    var overRange = compare >= range;
+
+    // Final booleans
+    var under = range ? underDelta && underRange && notUnder : underDelta && notUnder;
+    var over = range ? overDelta && overRange && notOver : overDelta && notOver;
+    var between = range ? overDelta && underRange && notBetween : false;
+
+    if (over) {
+      instance.position = OVER;
+      instance.emit(instance.position, instance.context);
+      checked = true;
+    } else if (under) {
+      instance.position = UNDER;
+      instance.emit(instance.position, instance.context);
+      checked = true;
+    } else if (between) {
+      instance.position = BETWEEN;
+      instance.emit(instance.position, instance.context);
+      checked = true;
+    }
+
+    if (force === true && !checked) {
+      if (underDelta) {
+        instance.position = UNDER;
+      } else if (range && overDelta && underRange) {
+        instance.position = BETWEEN;
+      } else if (range && overRange) {
+        instance.position = OVER;
+      } else if (!range && overDelta) {
+        instance.position = OVER;
+      }
+
+      instance.emit(instance.position, instance.context);
+    }
+  }
+};
+
+var overunder = {
+  scroll: function scroll(delta, range, options) {
+    return instance('scroll', delta, range, options);
+  },
+  resize: function resize(delta, range, options) {
+    return instance('resize', delta, range, options);
+  }
+};
+
+exports.default = overunder;
 
 },{"knot.js":2}],2:[function(require,module,exports){
 /*!
