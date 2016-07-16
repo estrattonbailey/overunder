@@ -2,106 +2,206 @@ import knot from 'knot.js'
 
 const OVER = 'over' 
 const UNDER = 'under' 
+const BETWEEN = 'between' 
 
 /**
- * Compare a variable value i.e. scrollY with
- * the user-passed delta value.
- *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {integer} compare window.scrollY/outerWidth
- * @param {boolean} update Force an update of this.position
+ * Object.assign fallback
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
  */
-const check = function(delta, target, compare, update = false){
-  let triggered = false
+if ('function' != typeof Object.assign) {
+  Object.assign = function(target) {
+    'use strict';
+    if (target == null) {
+      throw new TypeError('Cannot convert undefined or null to object');
+    }
 
-  if (compare >= delta && this.position !== OVER){
-    this.position = OVER
-    this.emit(this.position, target)
-    triggered = true
-  } else if (compare < delta && this.position === OVER) {
-    this.position = UNDER
-    this.emit(this.position, target)
-    triggered = true
-  }
+    target = Object(target);
+    for (var index = 1; index < arguments.length; index++) {
+      var source = arguments[index];
+      if (source != null) {
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+          }
+        }
+      }
+    }
 
-  if (update === true && !triggered){
-    this.position = compare >= delta ? OVER : UNDER
-    this.emit(this.position, target)
+    return target;
+  };
+}
+
+/**
+ * Define optional props on the 
+ * instance object
+ *
+ * @param {object} target The overunder instance
+ * @param {object|number} prop The optional arguments passed to initializer
+ */
+const addProps = (target, prop) => {
+  let isNode = prop.nodeType ? true : false
+  let isNumber = 'number' === typeof prop ? true : false
+
+  let key = isNumber || isNode ? 'range' : 'options'
+
+  if (isNode || isNumber){
+    Object.defineProperty(target, key, {
+      value: prop
+    })
+  } else if (!isNode) {
+    Object.assign(target.options, prop)
   }
 }
 
 /**
- * Namespace for scroll/resize handlers
+ * Instance factory
  *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {boolean} update Force an update of this.position
+ * @param {string} type Either 'scroll' or 'resize'
+ * @param {object|number} delta First (required) threshold
+ * @param {...array} args Optional args
  */
-const watch = {
-  scroll(delta, target, update){
-    let compare = target.scrollY || target.pageYOffset
-    check.call(this, delta, window, compare, update)
-  },
-  resize(delta, target, update){
-    let compare = target.offsetWidth || target.outerWidth
-    check.call(this, delta, target, compare, update)
-  }
-}
-
-/**
- * Public prototype methods that will be attached
- * to the return value of create()
- */
-const proto = {
-  update(){
-    watch[this.type].call(this, this.delta, this.target, true)
-    return this
-  },
-  init(){
-    this.handler = watch[this.type].bind(this, this.delta, this.target)
-    window.addEventListener(this.type, this.handler)
-    return this
-  },
-  destroy(){
-    window.removeEventListener(this.type, this.handler)
-    this.off(OVER)
-    this.off(UNDER)
-    return false
-  }
-}
-
-/**
- * Create instance with user-passed
- * values and prototypes
- *
- * @param {integer} delta Scroll/resize limit in pixels
- * @param {string} type Either scroll or resize
- */
-function create(type, delta, target = window){
-  return Object.create(knot(proto), {
-    type: {
-      value: type 
+const instance = (type, delta, ...args) => {
+  let instance
+  
+  /**
+   * Public API
+   */
+  const proto = knot({
+    init: function(){
+      window.addEventListener(type, checkPosition)
+      if (instance.options.watchResize) window.addEventListener('resize', instance.update)
+      return instance
     },
-    position: {
-      value: UNDER,
-      writable: true
+    update: function(){
+      checkPosition(true)
     },
-    target: {
-      value: target
-    },
-    delta: {
-      value: delta
+    destroy: function(){
+      window.removeEventListener(type, checkPosition)
+      window.removeEventListener('resize', instance.update)
     }
   })
-}
 
-/**
- * @param {integer} delta Scroll/resize limit in pixels
- */
-export default {
-  scroll(delta){
-    return create('scroll', delta)  
-  },
-  resize(delta, target){
-    return create('resize', delta, target)  
+  /**
+   * Create prototypes and defaults
+   */
+  instance = Object.create(proto, {
+    delta: {
+      value: delta
+    },
+    options: {
+      value: {
+        context: window,
+        watchResize: false,
+        enterBottom: false
+      },
+      writable: true
+    }
+  })
+
+  /**
+   * Add optional props to instance object
+   */
+  for (let i = 0; i < args.length; i++){
+    if (args[i]) addProps(instance, args[i])
+  }
+
+  /**
+   * Return instance!
+   */
+  return instance
+
+  /**
+   * Utils
+   */
+
+  /**
+   * Fired on scroll/update
+   *
+   * @param {boolean} force Checks immediately
+   */
+  function checkPosition(force = false){
+    let checked = false
+
+    let isScroll = type === 'scroll' ? true : false
+
+    // Cache values
+    let viewport = document.documentElement.clientHeight
+    let scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
+    let resizeDelta = !isScroll ? instance.options.context.offsetWidth || instance.options.context.outerWidth : false
+
+    // What to compare delta/range values to
+    let compare = isScroll ? scrollDelta : resizeDelta
+
+    // Cache delta or calculate delta
+    let delta
+    let range
+    if (isScroll){
+      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.getBoundingClientRect().top + scrollDelta
+      range = 'number' === typeof instance.range ? instance.range : instance.range.getBoundingClientRect().top + scrollDelta
+    } else {
+      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.offsetWidth || instance.delta.outerWidth
+      range = 'number' === typeof instance.range ? instance.range : instance.range.offsetWidth || instance.range.outerWidth 
+    }
+
+    // If enterBottom, subtract viewport
+    if (instance.options.enterBottom){
+      delta = delta - viewport
+      range = range - viewport
+    }
+
+    let notUnder = instance.position !== UNDER 
+    let notOver = instance.position !== OVER 
+    let notBetween = instance.position !== BETWEEN
+
+    let underDelta = compare < delta
+    let overDelta = compare >= delta
+
+    let underRange = compare < range
+    let overRange = compare >= range
+
+    // Final booleans
+    let under = range ? underDelta && underRange && notUnder : underDelta && notUnder
+    let over = range ? overDelta && overRange && notOver : overDelta && notOver
+    let between = range ? overDelta && underRange && notBetween : false  
+
+    if (over){
+      instance.position = OVER 
+      instance.emit(instance.position, instance.context)
+      checked = true
+    } else if (under) {
+      instance.position = UNDER 
+      instance.emit(instance.position, instance.context)
+      checked = true
+    } else if (between){
+      instance.position = BETWEEN 
+      instance.emit(instance.position, instance.context)
+      checked = true
+    }
+
+    if (force === true && !checked){
+      if (underDelta){
+        instance.position = UNDER
+      } else if (range && overDelta && underRange){
+        instance.position = BETWEEN 
+      } else if (range && overRange){
+        instance.position = OVER 
+      } else if (!range && overDelta){
+        instance.position = OVER 
+      }
+
+      instance.emit(instance.position, instance.context)
+    }
   }
 }
+
+const overunder = {
+  scroll: (delta, range, options) => {
+    return instance('scroll', delta, range, options)
+  },
+  resize: (delta, range, options) => {
+    return instance('resize', delta, range, options)
+  }
+}
+
+export default overunder
+
