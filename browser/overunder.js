@@ -155,22 +155,32 @@ var instance = function instance(type, delta) {
     var compare = isScroll ? scrollDelta : resizeDelta;
 
     // Cache delta or calculate delta
-    var delta = void 0;
-    var range = void 0;
+    var delta = instance.delta;
+    var range = instance.range || false;
+
     if (isScroll) {
-      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.getBoundingClientRect().top + scrollDelta;
-      range = 'number' === typeof instance.range ? instance.range : instance.range.getBoundingClientRect().top + scrollDelta;
+      delta = 'number' === typeof delta ? delta : delta.getBoundingClientRect().top + scrollDelta;
       delta = delta - offset + negativeOffset;
-      range = range - offset + negativeOffset;
     } else {
-      delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.offsetWidth || instance.delta.outerWidth;
-      range = 'number' === typeof instance.range ? instance.range : instance.range.offsetWidth || instance.range.outerWidth;
+      delta = 'number' === typeof delta ? delta : delta.offsetWidth || instance.delta.outerWidth;
+    }
+
+    if (range) {
+      if (isScroll) {
+        range = 'number' === typeof range ? range : range.getBoundingClientRect().top + scrollDelta;
+        range = range - offset + negativeOffset;
+      } else {
+        range = 'number' === typeof range ? range : range.offsetWidth || instance.range.outerWidth || false;
+      }
     }
 
     // If enterBottom, subtract viewport
     if (instance.options.enterBottom) {
       delta = delta - viewport;
-      range = range - viewport;
+
+      if (range) {
+        range = range - viewport;
+      }
     }
 
     var notUnder = instance.position !== UNDER;
