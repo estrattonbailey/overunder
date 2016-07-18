@@ -91,6 +91,8 @@ const instance = (type, delta, ...args) => {
     options: {
       value: {
         context: window,
+        offset: 0,
+        negativeOffset: 0,
         watchResize: false,
         enterBottom: false
       },
@@ -128,6 +130,8 @@ const instance = (type, delta, ...args) => {
     let viewport = document.documentElement.clientHeight
     let scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
     let resizeDelta = !isScroll ? instance.options.context.offsetWidth || instance.options.context.outerWidth : false
+    let offset = instance.options.offset
+    let negativeOffset = instance.options.negativeOffset
 
     // What to compare delta/range values to
     let compare = isScroll ? scrollDelta : resizeDelta
@@ -138,6 +142,8 @@ const instance = (type, delta, ...args) => {
     if (isScroll){
       delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.getBoundingClientRect().top + scrollDelta
       range = 'number' === typeof instance.range ? instance.range : instance.range.getBoundingClientRect().top + scrollDelta
+      delta = delta - offset + negativeOffset 
+      range = range - offset + negativeOffset 
     } else {
       delta = 'number' === typeof instance.delta ? instance.delta : instance.delta.offsetWidth || instance.delta.outerWidth
       range = 'number' === typeof instance.range ? instance.range : instance.range.offsetWidth || instance.range.outerWidth 
