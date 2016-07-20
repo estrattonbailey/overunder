@@ -140,21 +140,24 @@ const instance = (type, delta, ...args) => {
     let delta = instance.delta
     let range = instance.range || false
 
-    if (isScroll){
-      delta = 'number' === typeof delta ? delta : delta.getBoundingClientRect().top + scrollDelta
-      delta = delta - offset + negativeOffset 
-    } else {
-      delta = 'number' === typeof delta ? delta : delta.offsetWidth || instance.delta.outerWidth
+    if (typeof delta !== 'number'){
+      delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : delta.offsetWidth || delta.outerWidth
     }
 
-    if (range){
-      if (isScroll){
-        range = 'number' === typeof range ? range : range.getBoundingClientRect().top + scrollDelta
-        range = range - offset + negativeOffset 
-      } else {
-        range = 'number' === typeof range ? range : range.offsetWidth || instance.range.outerWidth || false
-      }
+    if (typeof range !== 'number'){
+      range = isScroll ? range.getBoundingClientRect().top + scrollDelta : range.offsetWidth || range.outerWidth || false
     }
+
+    if (typeof negativeOffset !== 'number'){
+      negativeOffset = isScroll ? negativeOffset.offsetHeight : negativeOffset.offsetWidth
+    }
+
+    if (typeof offset !== 'number'){
+      offset = isScroll ? offset.offsetHeight : offset.offsetWidth
+    }
+
+    delta = delta - offset + negativeOffset
+    range = range ? range - offset + negativeOffset : false
 
     // If enterBottom, subtract viewport
     if (instance.options.enterBottom){
