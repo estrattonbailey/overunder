@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _knot = require('knot.js');
 
 var _knot2 = _interopRequireDefault(_knot);
@@ -158,19 +160,19 @@ var instance = function instance(type, delta) {
     var delta = instance.delta;
     var range = instance.range || false;
 
-    if (typeof delta !== 'number') {
+    if ((typeof delta === 'undefined' ? 'undefined' : _typeof(delta)) === 'object') {
       delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : delta.offsetWidth || delta.outerWidth;
     }
 
-    if (typeof range !== 'number') {
+    if ((typeof range === 'undefined' ? 'undefined' : _typeof(range)) === 'object') {
       range = isScroll ? range.getBoundingClientRect().top + scrollDelta : range.offsetWidth || range.outerWidth || false;
     }
 
-    if (typeof negativeOffset !== 'number') {
+    if ((typeof negativeOffset === 'undefined' ? 'undefined' : _typeof(negativeOffset)) === 'object') {
       negativeOffset = isScroll ? negativeOffset.offsetHeight : negativeOffset.offsetWidth;
     }
 
-    if (typeof offset !== 'number') {
+    if ((typeof offset === 'undefined' ? 'undefined' : _typeof(offset)) === 'object') {
       offset = isScroll ? offset.offsetHeight : offset.offsetWidth;
     }
 

@@ -140,19 +140,19 @@ const instance = (type, delta, ...args) => {
     let delta = instance.delta
     let range = instance.range || false
 
-    if (typeof delta !== 'number'){
+    if (typeof delta === 'object'){
       delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : delta.offsetWidth || delta.outerWidth
     }
 
-    if (typeof range !== 'number'){
+    if (typeof range === 'object'){
       range = isScroll ? range.getBoundingClientRect().top + scrollDelta : range.offsetWidth || range.outerWidth || false
     }
 
-    if (typeof negativeOffset !== 'number'){
+    if (typeof negativeOffset === 'object'){
       negativeOffset = isScroll ? negativeOffset.offsetHeight : negativeOffset.offsetWidth
     }
 
-    if (typeof offset !== 'number'){
+    if (typeof offset === 'object'){
       offset = isScroll ? offset.offsetHeight : offset.offsetWidth
     }
 
