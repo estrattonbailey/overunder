@@ -60,7 +60,8 @@ var addProps = function addProps(target, prop) {
 
   if (isNode || isNumber) {
     Object.defineProperty(target, key, {
-      value: prop
+      value: prop,
+      writable: true
     });
   } else if (!isNode) {
     Object.assign(target.options, prop);
@@ -91,6 +92,15 @@ var instance = function instance(type, delta) {
       return instance;
     },
     update: function update() {
+      var delta = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+      var range = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+      if (delta && delta !== instance.delta) {
+        instance.delta = delta;
+      }
+      if (range && range !== instance.range) {
+        instance.range = range;
+      }
       checkPosition(true);
     },
     destroy: function destroy() {
@@ -104,7 +114,8 @@ var instance = function instance(type, delta) {
    */
   instance = Object.create(proto, {
     delta: {
-      value: delta
+      value: delta,
+      writable: true
     },
     options: {
       value: {

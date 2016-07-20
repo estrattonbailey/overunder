@@ -46,7 +46,8 @@ const addProps = (target, prop) => {
 
   if (isNode || isNumber){
     Object.defineProperty(target, key, {
-      value: prop
+      value: prop,
+      writable: true
     })
   } else if (!isNode) {
     Object.assign(target.options, prop)
@@ -72,7 +73,13 @@ const instance = (type, delta, ...args) => {
       if (instance.options.watchResize) window.addEventListener('resize', instance.update)
       return instance
     },
-    update: function(){
+    update: function(delta = false, range = false){
+      if (delta && delta !== instance.delta){
+        instance.delta = delta
+      } 
+      if (range && range !== instance.range){
+        instance.range = range
+      } 
       checkPosition(true)
     },
     destroy: function(){
@@ -86,7 +93,8 @@ const instance = (type, delta, ...args) => {
    */
   instance = Object.create(proto, {
     delta: {
-      value: delta
+      value: delta,
+      writable: true
     },
     options: {
       value: {
@@ -223,6 +231,8 @@ const overunder = {
 }
 
 export default overunder
+
+
 
 
 
