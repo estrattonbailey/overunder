@@ -88,7 +88,7 @@ var instance = function instance(type, delta) {
   var proto = (0, _knot2.default)({
     init: function init() {
       window.addEventListener(type, checkPosition);
-      if (instance.options.watchResize) window.addEventListener('resize', instance.update);
+      if (instance.options.watchResize) window.addEventListener('resize', updateHandler);
       return instance;
     },
     update: function update() {
@@ -105,7 +105,7 @@ var instance = function instance(type, delta) {
     },
     destroy: function destroy() {
       window.removeEventListener(type, checkPosition);
-      window.removeEventListener('resize', instance.update);
+      window.removeEventListener('resize', updateHandler);
     }
   });
 
@@ -144,6 +144,14 @@ var instance = function instance(type, delta) {
   /**
    * Utils
    */
+
+  /**
+   * Cache ref to update handler
+   * so we can remove it later
+   */
+  function updateHandler() {
+    instance.update();
+  }
 
   /**
    * Fired on scroll/update
