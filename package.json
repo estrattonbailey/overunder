@@ -4,7 +4,7 @@
   "description": "Lets you know where you're at.",
   "main": "dist/overunder.js",
   "scripts": {
-    "js:umd": "mkdir browser ; browserify index.js --standalone overunder > browser/overunder.js"
+    "package": "mkdir browser ; browserify index.js --standalone overunder > browser/overunder.js"
   },
   "browserify": {
     "debug": true,
