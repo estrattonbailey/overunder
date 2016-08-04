@@ -1,98 +1,135 @@
-# Overunder
-A tiny helper that let's you know when you're over or under a specified scroll position or viewport width.
+# overunder  [![npm](https://img.shields.io/npm/v/overunder.svg?maxAge=2592000)](https://www.npmjs.com/package/overunder)
+A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width.
 
-## Usage 
-Create an instance, attach listeners, and then initiate it to listen for events `above`, `below` or `between` user specified values.
+Use overunder for sticky elements, lazy loading, [element queries](https://www.sitepoint.com/beyond-media-queries-time-get-elemental/), etc.
 
-## API
-### overunder.scroll(delta[, range, options])
-### overunder.resize(delta[, range, options])
-
-## Parameters
-#### `delta`
-First threshold value to watch. You can also pass an DOM node and Overunder will calculate its offset value.
-#### `range` - optional
-Second threshold value to watch. Just like `delta`, you can pass a DOM node.
-
-## Options
-There are a few configuration options you can override.
-```javascript
-const options = {
-  context: window,
-  enterBottom: false,
-  watchResize: false
-}
+## Install 
+```bash
+npm i overunder --save
 ```
-#### `options.context` - optional, works with `resize()` only currently
-Watch a specific element's width change instead of the window.
-#### `options.enterBottom` - optional
-Fire events when threshold enters the bottom of the screen. Defaults to `false` - fires events when threshold reaches top of screen.
-#### `options.watchResize` - optional
-On resize, recalculate the positions of `delta` and `range` and update positioning to fire events. **Don't enable this with `resize()`, only use with `scroll()`**.
 
+## Usage
+#### Create An Instance
+Create an instance with two waypoints.
 ```javascript
-// create an instance
-const anchor = document.getElementById('anchor')
-const scroller = overunder.scroll(1000, anchor, { watchResize: true })
+import overunder from 'overunder'
 
-// attach listeners
-scroller.on('under', () => {
-  // under 1000px
-})
-scroller.on('between', () => {
-  // above 1000px and below anchor offset top
-})
-scroller.on('over', () => {
-  // over anchor offset top
+const endWaypoint = document.getElementById('anchor')
+
+const scroller = overunder.scroll(200, endWaypoint, {watchResize: true})
+
+scroller.on('under' () => {
+  // under 200px
 })
 
-// initiate instance, check scroll position
+scroller.on('between' () => {
+  // between 200px and endWaypoint offset top
+})
+
+scroller.on('over' () => {
+  // over endWaypoint offset top
+})
+
+// Start watching scroll and check position
 scroller.init().update()
 ```
+#### Destroy An Instance
+Destroy an instance and all handlers.
 ```javascript
-// resize example
-const resizer = overunder.resize(1200)
+scroller.destroy()
+```
+#### Update Instance After DOM Change
+After a DOM change, like appending elements via AJAX, check scroll position again.
+```javascript
+scroller.update()
+```
+If a waypoint changes, or you need to update either of the waypoints, pass them as arguments to the `update()` method. This will also check the position immediately after updating the waypoint value.
+```javascript
+scroller.update(500)
 
-resizer.on('over', () => {
-  // large screens
-})
-
-const element = overunder.resize(500, document.getElementById('elementQuery'))
-
-element.on('under', () => {
-  // element is less than 500px wide
-})
+// Or pass a new element
+scroller.update(500, newEndWaypoint)
 ```
 
-## Create an instance
-Overunder returns an object with useful methods attached. It also does not start listening to scroll and resize events until you tell it to. Also, **be sure to attach listeners before you run `.init()`.**
-
+## API 
 ```javascript
-const scroller = overunder.scroll(1000)
+import overunder from 'overunder'
 ```
-### instance.init()
-Initiate instance to start listening to scroll/resize events.
 
-### instance.update()
-Check the current scroll position and fire relevant events.
+### .scroll
+```javascript
+overunder.scroll(delta, range, options)
+```
+- delta `string|element` - first waypoint
+- range `string|element` - (optional) second waypoint, enables the `between` event
+- options `object` - (optional) available properties: `watchResize` `offset` `enterBottom`
+ 
+### .resize
+```javascript
+overunder.resize(delta, range, options)
+```
+- delta `string|element` - first waypoint
+- range `string|element` - (optional) second waypoint, enables the `between` event
+- options `object` - (optional) available properties: `offset` `context`
 
-### instance.destroy()
-Destroy scroll/resize handlers on the instance.
+### .on
+Attach event listeners for a event.
+```javascript
+overunder.on(event, callback)
+```
 
-## Events
-Thanks to the lovely [knot.js](https://github.com/callmecavs/knot.js) library, overunder is also an event emitter.
+### .off
+Remove event listener.
+```javascript
+const handler = () => {}
+overunder.off('over', handler)
+```
 
-### instance.on(event, handler)
-Listen for events (either 'over' or 'under') and run a handler function on each event.
+### .init
+Initiate the instance and start watching for resize or scroll events. Returns the instance, allowing you to chain `update()`.
+```javascript
+overunder.init()
+```
 
-### instance.once(event, handler)
-Listen for a single event and fire a handler function.
+### .update
+Check position. 
+```javascript
+overunder.update()
+```
+Optionally update the waypoints, and then check position.
+```javascript
+overunder.update(newDelta, newRange)
+```
+*Currently it's not possible to update only the `range` value independently.*
 
-### instance.off(event[, handler])
-Remove listeners for given event and/or handler function.
+### .destroy
+Destroy the instance and remove all listeners.
+```javascript
+overunder.destroy()
+```
 
-### instance.emit(event[, arguments])
-This is used internally, but if you want to use it externally, go for it.
+## Options
+Options are passed as an object as the second or third parameter of either the `scroll()` or `resize()` methods.
 
-* * *
-MIT
+### offset `number` - default: 0
+Buffer distance, subtracted from scroll/resize position. Pass a negative number to achieve a positive offset.
+
+### watchResize `boolean` - default: false
+Continously checks scroll position on resize. *For `scroll()` instances only.*
+
+### enterBottom `boolean` - default: false
+By defaul, overunder fires events when waypoints reach the top of the viewport. Enable this option to fire events when the waypoint enters the bottom of the viewport. *For `scroll()` instances only.*
+
+### context `element` - default: window
+Watch a specific element for changes in width. *For `resize()` instances only.*
+
+## Dependencies
+- [knot.js:](https://github.com/callmecavs/knot.js) A browser-based event emitter, for tying things together. by [@callmecavs](https://github.com/callmecavs)
+
+## TODO
+1. Test `context` option on scroll
+2. Enforce options for `scroll` vs `resize` i.e. resize doesn't need `watchResize` option
+3. Allow for updating the `range` value independently of the `delta`
+4. Pass context to `resize` callback
+
+### MIT License - Please contribute! :)
