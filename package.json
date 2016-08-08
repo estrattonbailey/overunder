@@ -1,7 +1,7 @@
 {
   "name": "overunder",
-  "version": "0.2.2",
-  "description": "Lets you know where you're at.",
+  "version": "0.3.1",
+  "description": "A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width.",
   "main": "dist/overunder.js",
   "scripts": {
     "package": "mkdir browser ; browserify index.js --standalone overunder > browser/overunder.js"
@@ -32,7 +32,9 @@
   "keywords": [
     "scroll",
     "waypoint",
-    "resize"
+    "resize",
+    "sticky",
+    "element queries"
   ],
   "author": "estrattonbailey",
   "license": "MIT",
