@@ -201,15 +201,15 @@ const instance = (type, delta, ...args) => {
 
     if (over){
       instance.position = OVER 
-      instance.emit(instance.position, instance.context)
+      instance.emit(instance.position, instance)
       checked = true
     } else if (under) {
       instance.position = UNDER 
-      instance.emit(instance.position, instance.context)
+      instance.emit(instance.position, instance)
       checked = true
     } else if (between){
       instance.position = BETWEEN 
-      instance.emit(instance.position, instance.context)
+      instance.emit(instance.position, instance)
       checked = true
     }
 
@@ -224,7 +224,7 @@ const instance = (type, delta, ...args) => {
         instance.position = OVER 
       }
 
-      instance.emit(instance.position, instance.context)
+      instance.emit(instance.position, instance)
     }
   }
 }
