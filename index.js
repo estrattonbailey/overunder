@@ -73,13 +73,20 @@ const instance = (type, delta, ...args) => {
       if (instance.options.watchResize) window.addEventListener('resize', updateHandler)
       return instance
     },
-    update: function(delta = false, range = false){
-      if (delta && delta !== instance.delta){
+    update: function(delta = false, ...args){
+      if (delta && typeof delta === 'object'){
+        addProps(instance, delta)
+      } else if (delta && typeof delta === 'number' && delta !== instance.delta){
         instance.delta = delta
       } 
-      if (range && range !== instance.range){
-        instance.range = range
-      } 
+
+      /**
+       * Add optional props to instance object
+       */
+      for (let i = 0; i < args.length; i++){
+        if (args[i]) addProps(instance, args[i])
+      }
+
       checkPosition(true)
     },
     destroy: function(){
