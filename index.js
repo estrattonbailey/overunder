@@ -138,44 +138,73 @@ const instance = (type, delta, ...args) => {
    * @param {boolean} force Checks immediately
    */
   function checkPosition(force = false){
+    /**
+     * Acts as a simple debounce
+     */
     let checked = false
 
     let isScroll = type === 'scroll' ? true : false
 
-    // Cache values
+    /** 
+     * Viewport height
+     */
     let viewport = document.documentElement.clientHeight
+
+    /**
+     * Distance scrolled
+     */
     let scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
-    let resizeDelta = !isScroll ? instance.options.context.offsetWidth || instance.options.context.outerWidth : false
+
+    /**
+     * Window width. Uses innerWidth if
+     * that's smaller than outerWidth
+     * (if dev tools are open, responsive
+     * design mode in Safari) etc
+     */
+    let resizeDelta = !isScroll ? instance.options.context.offsetWidth || Math.min(window.outerWidth, window.innerWidth) : false
+
+    /**
+     * Offset values
+     */
     let offset = instance.options.offset
     let negativeOffset = instance.options.negativeOffset
 
-    // What to compare delta/range values to
+    /**
+     * What to compare delta/range values to
+     */
     let compare = isScroll ? scrollDelta : resizeDelta
 
-    // Cache delta or calculate delta
+    /**
+     * Cache or calculate delta and range
+     */
     let delta = instance.delta
     let range = instance.range || false
-
     if (typeof delta === 'object'){
       delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : delta.offsetWidth || delta.outerWidth
     }
-
     if (typeof range === 'object'){
       range = isScroll ? range.getBoundingClientRect().top + scrollDelta : range.offsetWidth || range.outerWidth || false
     }
 
+    /**
+     * If offsets are an element
+     */
     if (typeof negativeOffset === 'object'){
       negativeOffset = isScroll ? negativeOffset.offsetHeight : negativeOffset.offsetWidth
     }
-
     if (typeof offset === 'object'){
       offset = isScroll ? offset.offsetHeight : offset.offsetWidth
     }
 
+    /**
+     * Calculate final delta and range values
+     */
     delta = delta - offset + negativeOffset
     range = range ? range - offset + negativeOffset : false
 
-    // If enterBottom, subtract viewport
+    /**
+     * If enterBottom, subtract viewport
+     */
     if (instance.options.enterBottom){
       delta = delta - viewport
 
@@ -184,6 +213,9 @@ const instance = (type, delta, ...args) => {
       }
     }
 
+    /**
+     * Booleans
+     */
     let notUnder = instance.position !== UNDER 
     let notOver = instance.position !== OVER 
     let notBetween = instance.position !== BETWEEN
