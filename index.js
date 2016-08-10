@@ -55,6 +55,22 @@ const addProps = (target, prop) => {
 }
 
 /**
+ * Get width/height of element or window
+ *
+ * @param {object} el Element or window
+ * @param {string} type 'Height' or 'Width
+ */
+const returnSize = (el, type) => {
+  const isWindow = el !== null && el.window ? true : false
+
+  if (isWindow){
+    return Math.max(el[`outer${type}`], document.documentElement[`client${type}`])
+  }
+
+  return Math.max(el[`offset${type}`], el[`client${type}`])
+}
+
+/**
  * Instance factory
  *
  * @param {string} type Either 'scroll' or 'resize'
@@ -145,36 +161,27 @@ const instance = (type, delta, ...args) => {
    * @param {boolean} force Checks immediately
    */
   function checkPosition(force = false){
+    const isScroll = type === 'scroll' ? true : false
+
     /**
      * Acts as a simple debounce
      */
     let checked = false
 
-    let isScroll = type === 'scroll' ? true : false
-
     /** 
      * Viewport height
      */
-    let viewport = document.documentElement.clientHeight
+    const viewport = document.documentElement.clientHeight
 
     /**
      * Distance scrolled
      */
-    let scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
+    const scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
 
     /**
-     * Window width. Uses innerWidth if
-     * that's smaller than outerWidth
-     * (if dev tools are open, responsive
-     * design mode in Safari) etc
+     * Window width
      */
-    let resizeDelta = !isScroll ? instance.options.context.offsetWidth || Math.min(window.outerWidth, window.innerWidth) : false
-
-    /**
-     * Offset values
-     */
-    let offset = instance.options.offset
-    let negativeOffset = instance.options.negativeOffset
+    let resizeDelta = isScroll ? false : returnSize(instance.options.context, 'Width') 
 
     /**
      * What to compare delta/range values to
@@ -187,20 +194,22 @@ const instance = (type, delta, ...args) => {
     let delta = instance.delta
     let range = instance.range || false
     if (typeof delta === 'object'){
-      delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : delta.offsetWidth || delta.outerWidth
+      delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : returnSize(delta, 'Width') 
     }
     if (typeof range === 'object'){
-      range = isScroll ? range.getBoundingClientRect().top + scrollDelta : range.offsetWidth || range.outerWidth || false
+      range = isScroll ? range.getBoundingClientRect().top + scrollDelta : returnSize(range, 'Width') || false
     }
 
     /**
-     * If offsets are an element
+     * Offset values
      */
+    let offset = instance.options.offset
+    let negativeOffset = instance.options.negativeOffset
     if (typeof negativeOffset === 'object'){
-      negativeOffset = isScroll ? negativeOffset.offsetHeight : negativeOffset.offsetWidth
+      negativeOffset = isScroll ? returnSize(negativeOffset, 'Height') : returnSize(negativeOffset, 'Width') 
     }
     if (typeof offset === 'object'){
-      offset = isScroll ? offset.offsetHeight : offset.offsetWidth
+      offset = isScroll ? returnSize(offset, 'Height') : returnSize(offset, 'Width') 
     }
 
     /**
