@@ -60,16 +60,16 @@ import overunder from 'overunder'
 ```javascript
 overunder.scroll(delta, range, options)
 ```
-- delta `string|element` - first waypoint
-- range `string|element` - (optional) second waypoint, enables the `between` event
+- delta `number|element` - first waypoint
+- range `number|element` - (optional) second waypoint, enables the `between` event
 - options `object` - (optional) available properties: `watchResize` `offset` `enterBottom`
  
 ### .resize
 ```javascript
 overunder.resize(delta, range, options)
 ```
-- delta `string|element` - first waypoint
-- range `string|element` - (optional) second waypoint, enables the `between` event
+- delta `number|element` - first waypoint
+- range `number|element` - (optional) second waypoint, enables the `between` event
 - options `object` - (optional) available properties: `offset` `context`
 
 ### .on
@@ -92,7 +92,7 @@ overunder.init()
 ```
 
 ### .update
-Check position. 
+Allows you to check the position of the instance at any time, as well as update values and options. Position is checked once each time you call update, regardless of if you've passed any params or not.
 ```javascript
 overunder.update()
 ```
@@ -100,7 +100,16 @@ Optionally update the waypoints, and then check position.
 ```javascript
 overunder.update(newDelta, newRange)
 ```
-*Currently it's not possible to update only the `range` value independently.*
+To update just the `range` value, pass a falsy value as the first param.
+```javascript
+overunder.update(null, newRange)
+```
+To update options properties, pass the object *after* your `delta` or `range` values.
+```javascript
+overunder.update(newDelta, {offset: 50, enterBottom: true})
+overunder.update(newDelta, newRange, {negativeOffset: newNegOffset})
+overunder.update({watchResize: true})
+```
 
 ### .destroy
 Destroy the instance and remove all listeners.
@@ -111,8 +120,11 @@ overunder.destroy()
 ## Options
 Options are passed as an object as the second or third parameter of either the `scroll()` or `resize()` methods.
 
-### offset `number` - default: 0
-Buffer distance, subtracted from scroll/resize position. Pass a negative number to achieve a positive offset.
+### offset `number|element` - default: 0
+Buffer distance, **subtracted** from scroll/resize position (gets triggered sooner). Pass a negative number to achieve a positive offset (gets triggered later). To acheive a positive offset using an element, use `negativeOffset` below.
+
+### negativeOffset `number|element` - default: 0
+A value that is always **added** to the position value. I realize the naming of these two offset options is confusing, need to figure that out.
 
 ### watchResize `boolean` - default: false
 Continously checks scroll position on resize. *For `scroll()` instances only.*
@@ -127,7 +139,7 @@ Watch a specific element for changes in width. *For `resize()` instances only.*
 - [knot.js:](https://github.com/callmecavs/knot.js) A browser-based event emitter, for tying things together. by [@callmecavs](https://github.com/callmecavs)
 
 ## TODO
-1. Test `context` option on scroll
+1. Test `context` option for scroll instances scroll
 2. Enforce options for `scroll` vs `resize` i.e. resize doesn't need `watchResize` option
 3. Allow for updating the `range` value independently of the `delta`
 4. Pass context to `resize` callback
