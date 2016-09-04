@@ -4,62 +4,17 @@ const OVER = 'over'
 const UNDER = 'under' 
 const BETWEEN = 'between' 
 
-/**
- * Object.assign fallback
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
- */
-if ('function' != typeof Object.assign) {
-  Object.assign = function(target) {
-    'use strict';
-    if (target == null) {
-      throw new TypeError('Cannot convert undefined or null to object');
-    }
+const isObj = o => o !== null && 'object' === typeof o && !('nodeType' in o)
 
-    target = Object(target);
-    for (var index = 1; index < arguments.length; index++) {
-      var source = arguments[index];
-      if (source != null) {
-        for (var key in source) {
-          if (Object.prototype.hasOwnProperty.call(source, key)) {
-            target[key] = source[key];
-          }
-        }
-      }
-    }
-
-    return target;
-  };
+const merge = (target, ...args) => {
+  args.forEach(a => Object.keys(a).forEach(k => target[k] = a[k]))
+  return target
 }
 
-/**
- * Define optional props on the 
- * instance object
- *
- * @param {object} target The overunder instance
- * @param {object|number} prop The optional arguments passed to initializer
- */
 const addProps = (target, prop) => {
-  let isNode = prop.nodeType ? true : false
-  let isNumber = 'number' === typeof prop ? true : false
-
-  let key = isNumber || isNode ? 'range' : 'options'
-
-  if (isNode || isNumber){
-    Object.defineProperty(target, key, {
-      value: prop,
-      writable: true
-    })
-  } else if (!isNode) {
-    Object.assign(target.options, prop)
-  }
+  isObj(prop) ? merge(target.options, prop) : target['range'] = prop
 }
 
-/**
- * Get width/height of element or window
- *
- * @param {object} el Element or window
- * @param {string} type 'Height' or 'Width
- */
 const returnSize = (el, type) => {
   const isWindow = el !== null && el.window ? true : false
 
@@ -71,19 +26,12 @@ const returnSize = (el, type) => {
 }
 
 /**
- * Instance factory
- *
  * @param {string} type Either 'scroll' or 'resize'
  * @param {object|number} delta First (required) threshold
  * @param {...array} args Optional args
  */
-const instance = (type, delta, ...args) => {
-  let instance
-  
-  /**
-   * Public API
-   */
-  const proto = knot({
+const overunder = (type, delta, ...args) => {
+  const instance = Object.create(knot({
     init: function(){
       window.addEventListener(type, checkPosition)
       if (instance.options.watchResize) window.addEventListener('resize', updateHandler)
@@ -109,12 +57,7 @@ const instance = (type, delta, ...args) => {
       window.removeEventListener(type, checkPosition)
       window.removeEventListener('resize', updateHandler)
     }
-  })
-
-  /**
-   * Create prototypes and defaults
-   */
-  instance = Object.create(proto, {
+  }), {
     delta: {
       value: delta,
       writable: true
@@ -138,14 +81,7 @@ const instance = (type, delta, ...args) => {
     if (args[i]) addProps(instance, args[i])
   }
 
-  /**
-   * Return instance!
-   */
   return instance
-
-  /**
-   * Utils
-   */
 
   /**
    * Cache ref to update handler
@@ -277,13 +213,11 @@ const instance = (type, delta, ...args) => {
   }
 }
 
-const overunder = {
+export default {
   scroll: (delta, range, options) => {
-    return instance('scroll', delta, range, options)
+    return overunder('scroll', delta, range, options)
   },
   resize: (delta, range, options) => {
-    return instance('resize', delta, range, options)
+    return overunder('resize', delta, range, options)
   }
-}
-
-export default overunder
+} 
