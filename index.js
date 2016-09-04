@@ -34,28 +34,22 @@ const overunder = (type, delta, ...args) => {
   const instance = Object.create(knot({
     init: function(){
       window.addEventListener(type, checkPosition)
-      if (instance.options.watchResize) window.addEventListener('resize', updateHandler)
+      if (instance.options.watchResize) window.addEventListener('resize', checkPosition)
       return instance
     },
     update: function(delta = false, ...args){
-      if (delta && typeof delta === 'object'){
-        addProps(instance, delta)
-      } else if (delta && typeof delta === 'number' && delta !== instance.delta){
-        instance.delta = delta
-      } 
+      delta && isObj(delta) ? addProps(instance, delta) : instance.delta === delta
 
       /**
        * Add optional props to instance object
        */
-      for (let i = 0; i < args.length; i++){
-        if (args[i]) addProps(instance, args[i])
-      }
+      args.forEach(a => addProps(instance, a))
 
       checkPosition(true)
     },
     destroy: function(){
       window.removeEventListener(type, checkPosition)
-      window.removeEventListener('resize', updateHandler)
+      window.removeEventListener('resize', checkPosition)
     }
   }), {
     delta: {
@@ -77,19 +71,9 @@ const overunder = (type, delta, ...args) => {
   /**
    * Add optional props to instance object
    */
-  for (let i = 0; i < args.length; i++){
-    if (args[i]) addProps(instance, args[i])
-  }
+  args.forEach(a => addProps(instance, a))
 
   return instance
-
-  /**
-   * Cache ref to update handler
-   * so we can remove it later
-   */
-  function updateHandler(){
-    instance.update()
-  }
 
   /**
    * Fired on scroll/update
