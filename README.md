@@ -1,5 +1,5 @@
 # overunder  [![npm](https://img.shields.io/npm/v/overunder.svg?maxAge=2592000)](https://www.npmjs.com/package/overunder)
-A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width.
+A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width. **2.68kb gzipped.**
 
 Use overunder for sticky elements, lazy loading, [element queries](https://www.sitepoint.com/beyond-media-queries-time-get-elemental/), etc.
 
@@ -18,15 +18,15 @@ const endWaypoint = document.getElementById('anchor')
 
 const scroller = overunder.scroll(200, endWaypoint, {watchResize: true})
 
-scroller.on('under' () => {
+scroller.on('under' (instance) => {
   // under 200px
 })
 
-scroller.on('between' () => {
+scroller.on('between' (instance) => {
   // between 200px and endWaypoint offset top
 })
 
-scroller.on('over' () => {
+scroller.on('over' (instance) => {
   // over endWaypoint offset top
 })
 
@@ -73,7 +73,7 @@ overunder.resize(delta, range, options)
 - options `object` - (optional) available properties: `offset` `context`
 
 ### .on
-Attach event listeners for a event.
+Attach event listeners for a event. The callback gets a reference to the overunder instance as its first parameter.
 ```javascript
 overunder.on(event, callback)
 ```
@@ -135,13 +135,8 @@ By defaul, overunder fires events when waypoints reach the top of the viewport. 
 ### context `element` - default: window
 Watch a specific element for changes in width. *For `resize()` instances only.*
 
-## Dependencies
-- [knot.js:](https://github.com/callmecavs/knot.js) A browser-based event emitter, for tying things together. by [@callmecavs](https://github.com/callmecavs)
-
 ## TODO
 1. Test `context` option for scroll instances scroll
 2. Enforce options for `scroll` vs `resize` i.e. resize doesn't need `watchResize` option
-3. Allow for updating the `range` value independently of the `delta`
-4. Pass context to `resize` callback
 
 ### MIT License - Please contribute! :)
