@@ -1,5 +1,3 @@
-import knot from 'knot.js'
-
 const OVER = 'over' 
 const UNDER = 'under' 
 const BETWEEN = 'between' 
@@ -33,15 +31,17 @@ const returnScroll = () => window.scrollY || window.pageYOffset
  * @param {...array} args Optional args
  */
 const overunder = (type, delta, ...args) => {
+  let ticking = false 
   const isScroll = type === 'scroll' ? true : false
+  const listeners = {}
 
-  const instance = Object.create(knot({
+  const instance = Object.create({
     init: function(){
       window.addEventListener(type, requestPosition)
       if (this.options.watchResize) window.addEventListener('resize', requestPosition)
       return this 
     },
-    update: function(delta = false, ...args){
+    update: function(delta = null, ...args){
       if (delta){
         isObj(delta) ? addProps(this, delta) : this.delta = delta
       }
@@ -56,8 +56,17 @@ const overunder = (type, delta, ...args) => {
     destroy: function(){
       window.removeEventListener(type, requestPosition)
       window.removeEventListener('resize', requestPosition)
+    },
+    on: function(e, cb = null){
+      if (!cb) return
+      listeners[e] = listeners[e] || { queue: [] }
+      listeners[e].queue.push(cb)
+    },
+    emit: function(e, data = undefined){
+      let items = listeners[e] ? listeners[e].queue : false
+      items && items.forEach(i => i(data))
     }
-  }), {
+  }, {
     delta: {
       value: delta,
       writable: true
@@ -80,7 +89,6 @@ const overunder = (type, delta, ...args) => {
   args.forEach(a => !!a ? addProps(instance, a) : null)
 
   let currentPosition = returnPosition() 
-  let ticking = false 
 
   return instance
 
@@ -109,22 +117,7 @@ const overunder = (type, delta, ...args) => {
     /** 
      * Viewport height
      */
-    const viewport = document.documentElement.clientHeight
-
-    /**
-     * Distance scrolled
-     */
-    const scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false
-
-    /**
-     * Window width
-     */
-    let resizeDelta = isScroll ? false : returnSize(instance.options.context, 'Width') 
-
-    /**
-     * What to compare delta/range values to
-     */
-    let compare = currentPosition 
+    const viewport = window.innerHeight 
 
     /**
      * Cache or calculate delta and range

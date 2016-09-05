@@ -48,9 +48,8 @@
     "jsdom-global": "^2.0.0",
     "minifyify": "^7.3.3",
     "query-string": "^4.2.3",
+    "raf": "^3.3.0",
     "watchify": "^3.7.0"
   },
-  "dependencies": {
-    "knot.js": "^1.1.1"
-  }
+  "dependencies": {}
 }

@@ -7,12 +7,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _knot = require('knot.js');
-
-var _knot2 = _interopRequireDefault(_knot);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 var OVER = 'over';
 var UNDER = 'under';
 var BETWEEN = 'between';
@@ -48,6 +42,10 @@ var returnSize = function returnSize(el, type) {
   return Math.max(el['offset' + type], el['client' + type]);
 };
 
+var returnScroll = function returnScroll() {
+  return window.scrollY || window.pageYOffset;
+};
+
 /**
  * @param {string} type Either 'scroll' or 'resize'
  * @param {object|number} delta First (required) threshold
@@ -58,17 +56,23 @@ var overunder = function overunder(type, delta) {
     args[_key2 - 2] = arguments[_key2];
   }
 
-  var instance = Object.create((0, _knot2.default)({
+  var ticking = false;
+  var isScroll = type === 'scroll' ? true : false;
+  var listeners = {};
+
+  var instance = Object.create({
     init: function init() {
-      window.addEventListener(type, checkPosition);
-      if (instance.options.watchResize) window.addEventListener('resize', checkPosition);
-      return instance;
+      window.addEventListener(type, requestPosition);
+      if (this.options.watchResize) window.addEventListener('resize', requestPosition);
+      return this;
     },
     update: function update() {
-      var delta = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+      var _this = this;
+
+      var delta = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
 
       if (delta) {
-        isObj(delta) ? addProps(instance, delta) : instance.delta = delta;
+        isObj(delta) ? addProps(this, delta) : this.delta = delta;
       }
 
       /**
@@ -80,16 +84,31 @@ var overunder = function overunder(type, delta) {
       }
 
       args.forEach(function (a) {
-        return !!a ? addProps(instance, a) : null;
+        return !!a ? addProps(_this, a) : null;
       });
 
-      checkPosition(true);
+      requestPosition(true);
     },
     destroy: function destroy() {
-      window.removeEventListener(type, checkPosition);
-      window.removeEventListener('resize', checkPosition);
+      window.removeEventListener(type, requestPosition);
+      window.removeEventListener('resize', requestPosition);
+    },
+    on: function on(e) {
+      var cb = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      if (!cb) return;
+      listeners[e] = listeners[e] || { queue: [] };
+      listeners[e].queue.push(cb);
+    },
+    emit: function emit(e) {
+      var data = arguments.length <= 1 || arguments[1] === undefined ? undefined : arguments[1];
+
+      var items = listeners[e] ? listeners[e].queue : false;
+      items && items.forEach(function (i) {
+        return i(data);
+      });
     }
-  }), {
+  }, {
     delta: {
       value: delta,
       writable: true
@@ -113,42 +132,42 @@ var overunder = function overunder(type, delta) {
     return !!a ? addProps(instance, a) : null;
   });
 
+  var currentPosition = returnPosition();
+
   return instance;
 
+  function returnPosition() {
+    return isScroll ? returnScroll() : returnSize(instance.options.context, 'Width');
+  }
+
+  function requestPosition() {
+    var force = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+
+    currentPosition = returnPosition();
+
+    if (!ticking) {
+      requestAnimationFrame(function () {
+        return checkPosition(force);
+      });
+      ticking = true;
+    }
+  }
+
   /**
-   * Fired on scroll/update
-   *
    * @param {boolean} force Checks immediately
    */
   function checkPosition() {
     var force = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
 
-    var isScroll = type === 'scroll' ? true : false;
-
     /**
-     * Acts as a simple debounce
+     * Check only once per call 
      */
     var checked = false;
 
     /** 
      * Viewport height
      */
-    var viewport = document.documentElement.clientHeight;
-
-    /**
-     * Distance scrolled
-     */
-    var scrollDelta = isScroll ? window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop : false;
-
-    /**
-     * Window width
-     */
-    var resizeDelta = isScroll ? false : returnSize(instance.options.context, 'Width');
-
-    /**
-     * What to compare delta/range values to
-     */
-    var compare = isScroll ? scrollDelta : resizeDelta;
+    var viewport = window.innerHeight;
 
     /**
      * Cache or calculate delta and range
@@ -156,10 +175,10 @@ var overunder = function overunder(type, delta) {
     var delta = instance.delta;
     var range = instance.range || false;
     if ((typeof delta === 'undefined' ? 'undefined' : _typeof(delta)) === 'object') {
-      delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : returnSize(delta, 'Width');
+      delta = isScroll ? delta.getBoundingClientRect().top + currentPosition : returnSize(delta, 'Width');
     }
     if ((typeof range === 'undefined' ? 'undefined' : _typeof(range)) === 'object') {
-      range = isScroll ? range.getBoundingClientRect().top + scrollDelta : returnSize(range, 'Width') || false;
+      range = isScroll ? range.getBoundingClientRect().top + currentPosition : returnSize(range, 'Width') || false;
     }
 
     /**
@@ -198,11 +217,11 @@ var overunder = function overunder(type, delta) {
     var notOver = instance.position !== OVER;
     var notBetween = instance.position !== BETWEEN;
 
-    var underDelta = compare < delta;
-    var overDelta = compare >= delta;
+    var underDelta = currentPosition < delta;
+    var overDelta = currentPosition >= delta;
 
-    var underRange = compare < range;
-    var overRange = compare >= range;
+    var underRange = currentPosition < range;
+    var overRange = currentPosition >= range;
 
     // Final booleans
     var under = range ? underDelta && underRange && notUnder : underDelta && notUnder;
@@ -236,6 +255,8 @@ var overunder = function overunder(type, delta) {
 
       instance.emit(instance.position, instance);
     }
+
+    ticking = false;
   }
 };
 
@@ -248,12 +269,5 @@ exports.default = {
   }
 };
 
-},{"knot.js":2}],2:[function(require,module,exports){
-/*!
- * Knot.js 1.1.1 - A browser-based event emitter, for tying things together.
- * Copyright (c) 2016 Michael Cavalea - https://github.com/callmecavs/knot.js
- * License: MIT
- */
-!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):n.Knot=e()}(this,function(){"use strict";var n={};n["extends"]=Object.assign||function(n){for(var e=1;e<arguments.length;e++){var t=arguments[e];for(var r in t)Object.prototype.hasOwnProperty.call(t,r)&&(n[r]=t[r])}return n};var e=function(){function e(n,e){return f[n]=f[n]||[],f[n].push(e),this}function t(n,t){return t._once=!0,e(n,t),this}function r(n){var e=arguments.length<=1||void 0===arguments[1]?!1:arguments[1];return e?f[n].splice(f[n].indexOf(e),1):delete f[n],this}function o(n){for(var e=this,t=arguments.length,o=Array(t>1?t-1:0),i=1;t>i;i++)o[i-1]=arguments[i];var u=f[n]&&f[n].slice();return u&&u.forEach(function(t){t._once&&r(n,t),t.apply(e,o)}),this}var i=arguments.length<=0||void 0===arguments[0]?{}:arguments[0],f={};return n["extends"]({},i,{on:e,once:t,off:r,emit:o})};return e});
 },{}]},{},[1])(1)
 });

@@ -44,34 +44,34 @@ test('resize delta + range', t => {
   t.is(instance.range, range)
 })
 
-test('update delta', t => {
-  t.plan(1)
+// test('update delta', t => {
+//   t.plan(1)
 
-  let delta = 500
-  let update = 1000
-  let instance = overunder.resize(delta)
+//   let delta = 500
+//   let update = 1000
+//   let instance = overunder.resize(delta)
 
-  instance.init()
+//   instance.init()
 
-  instance.update(update)
+//   instance.update(update)
 
-  t.is(instance.delta, update)
-})
+//   t.is(instance.delta, update)
+// })
 
-test('update range', t => {
-  t.plan(1)
+// test('update range', t => {
+//   t.plan(1)
 
-  let delta = 500
-  let range = 1000
-  let update = 1500
-  let instance = overunder.resize(delta, range)
+//   let delta = 500
+//   let range = 1000
+//   let update = 1500
+//   let instance = overunder.resize(delta, range)
 
-  instance.init()
+//   instance.init()
 
-  instance.update(null, update)
+//   instance.update(null, update)
 
-  t.is(instance.range, update)
-})
+//   t.is(instance.range, update)
+// })
 
 test('initial options', t => {
   t.plan(1)
@@ -88,24 +88,24 @@ test('initial options', t => {
   t.deepEqual(instance.options, options)
 })
 
-test('update options', t => {
-  t.plan(1)
+// test('update options', t => {
+//   t.plan(1)
 
-  let options = {
-    context: document.body,
-    watchResize: true, 
-    enterBottom: true,
-    offset: 100,
-    negativeOffset: 100
-  }
-  let update = {
-    offset: 200
-  }
-  let instance = overunder.scroll(500, options)
+//   let options = {
+//     context: document.body,
+//     watchResize: true, 
+//     enterBottom: true,
+//     offset: 100,
+//     negativeOffset: 100
+//   }
+//   let update = {
+//     offset: 200
+//   }
+//   let instance = overunder.scroll(500, options)
 
-  instance.init()
+//   instance.init()
 
-  instance.update(update)
+//   instance.update(update)
 
-  t.is(instance.options.offset, update.offset)
-})
+//   t.is(instance.options.offset, update.offset)
+// })
