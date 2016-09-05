@@ -25,16 +25,20 @@ const returnSize = (el, type) => {
   return Math.max(el[`offset${type}`], el[`client${type}`])
 }
 
+const returnScroll = () => window.scrollY || window.pageYOffset
+
 /**
  * @param {string} type Either 'scroll' or 'resize'
  * @param {object|number} delta First (required) threshold
  * @param {...array} args Optional args
  */
 const overunder = (type, delta, ...args) => {
+  const isScroll = type === 'scroll' ? true : false
+
   const instance = Object.create(knot({
     init: function(){
-      window.addEventListener(type, checkPosition)
-      if (this.options.watchResize) window.addEventListener('resize', checkPosition)
+      window.addEventListener(type, requestPosition)
+      if (this.options.watchResize) window.addEventListener('resize', requestPosition)
       return this 
     },
     update: function(delta = false, ...args){
@@ -47,11 +51,11 @@ const overunder = (type, delta, ...args) => {
        */
       args.forEach(a => !!a ? addProps(this, a) : null)
 
-      checkPosition(true)
+      requestPosition(true)
     },
     destroy: function(){
-      window.removeEventListener(type, checkPosition)
-      window.removeEventListener('resize', checkPosition)
+      window.removeEventListener(type, requestPosition)
+      window.removeEventListener('resize', requestPosition)
     }
   }), {
     delta: {
@@ -75,18 +79,30 @@ const overunder = (type, delta, ...args) => {
    */
   args.forEach(a => !!a ? addProps(instance, a) : null)
 
+  let currentPosition = returnPosition() 
+  let ticking = false 
+
   return instance
 
+  function returnPosition(){
+    return isScroll ? returnScroll() : returnSize(instance.options.context, 'Width')
+  }
+
+  function requestPosition(force = false) {
+    currentPosition = returnPosition() 
+
+    if (!ticking) {
+      requestAnimationFrame(() => checkPosition(force))
+      ticking = true
+    }
+  }
+
   /**
-   * Fired on scroll/update
-   *
    * @param {boolean} force Checks immediately
    */
   function checkPosition(force = false){
-    const isScroll = type === 'scroll' ? true : false
-
     /**
-     * Acts as a simple debounce
+     * Check only once per call 
      */
     let checked = false
 
@@ -108,7 +124,7 @@ const overunder = (type, delta, ...args) => {
     /**
      * What to compare delta/range values to
      */
-    let compare = isScroll ? scrollDelta : resizeDelta
+    let compare = currentPosition 
 
     /**
      * Cache or calculate delta and range
@@ -116,10 +132,10 @@ const overunder = (type, delta, ...args) => {
     let delta = instance.delta
     let range = instance.range || false
     if (typeof delta === 'object'){
-      delta = isScroll ? delta.getBoundingClientRect().top + scrollDelta : returnSize(delta, 'Width') 
+      delta = isScroll ? delta.getBoundingClientRect().top + currentPosition : returnSize(delta, 'Width') 
     }
     if (typeof range === 'object'){
-      range = isScroll ? range.getBoundingClientRect().top + scrollDelta : returnSize(range, 'Width') || false
+      range = isScroll ? range.getBoundingClientRect().top + currentPosition : returnSize(range, 'Width') || false
     }
 
     /**
@@ -158,11 +174,11 @@ const overunder = (type, delta, ...args) => {
     let notOver = instance.position !== OVER 
     let notBetween = instance.position !== BETWEEN
 
-    let underDelta = compare < delta
-    let overDelta = compare >= delta
+    let underDelta = currentPosition < delta
+    let overDelta = currentPosition >= delta
 
-    let underRange = compare < range
-    let overRange = compare >= range
+    let underRange = currentPosition < range
+    let overRange = currentPosition >= range
 
     // Final booleans
     let under = range ? underDelta && underRange && notUnder : underDelta && notUnder
@@ -196,6 +212,8 @@ const overunder = (type, delta, ...args) => {
 
       instance.emit(instance.position, instance)
     }
+
+    ticking = false
   }
 }
 
