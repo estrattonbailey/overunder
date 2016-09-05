@@ -38,12 +38,14 @@ const overunder = (type, delta, ...args) => {
       return instance
     },
     update: function(delta = false, ...args){
-      delta && isObj(delta) ? addProps(instance, delta) : instance.delta === delta
+      if (delta){
+        isObj(delta) ? addProps(instance, delta) : instance.delta = delta
+      }
 
       /**
        * Add optional props to instance object
        */
-      args.forEach(a => addProps(instance, a))
+      args.forEach(a => !!a ? addProps(instance, a) : null)
 
       checkPosition(true)
     },
@@ -71,7 +73,7 @@ const overunder = (type, delta, ...args) => {
   /**
    * Add optional props to instance object
    */
-  args.forEach(a => addProps(instance, a))
+  args.forEach(a => !!a ? addProps(instance, a) : null)
 
   return instance
 
