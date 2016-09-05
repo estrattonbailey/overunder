@@ -34,18 +34,18 @@ const overunder = (type, delta, ...args) => {
   const instance = Object.create(knot({
     init: function(){
       window.addEventListener(type, checkPosition)
-      if (instance.options.watchResize) window.addEventListener('resize', checkPosition)
-      return instance
+      if (this.options.watchResize) window.addEventListener('resize', checkPosition)
+      return this 
     },
     update: function(delta = false, ...args){
       if (delta){
-        isObj(delta) ? addProps(instance, delta) : instance.delta = delta
+        isObj(delta) ? addProps(this, delta) : this.delta = delta
       }
 
       /**
        * Add optional props to instance object
        */
-      args.forEach(a => !!a ? addProps(instance, a) : null)
+      args.forEach(a => !!a ? addProps(this, a) : null)
 
       checkPosition(true)
     },
