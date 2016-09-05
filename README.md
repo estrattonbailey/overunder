@@ -18,15 +18,15 @@ const endWaypoint = document.getElementById('anchor')
 
 const scroller = overunder.scroll(200, endWaypoint, {watchResize: true})
 
-scroller.on('under' (instance) => {
+scroller.on('under', (instance) => {
   // under 200px
 })
 
-scroller.on('between' (instance) => {
+scroller.on('between', (instance) => {
   // between 200px and endWaypoint offset top
 })
 
-scroller.on('over' (instance) => {
+scroller.on('over', (instance) => {
   // over endWaypoint offset top
 })
 
