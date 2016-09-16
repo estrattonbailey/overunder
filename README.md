@@ -1,5 +1,5 @@
 # overunder  [![npm](https://img.shields.io/npm/v/overunder.svg?maxAge=2592000)](https://www.npmjs.com/package/overunder)
-A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width. **2.68kb gzipped.**
+A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width. **2.0kb gzipped.**
 
 Use overunder for sticky elements, lazy loading, [element queries](https://www.sitepoint.com/beyond-media-queries-time-get-elemental/), etc.
 
