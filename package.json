@@ -1,6 +1,6 @@
 {
   "name": "overunder",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width.",
   "main": "dist/overunder.js",
   "scripts": {
