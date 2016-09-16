@@ -11,6 +11,10 @@ var OVER = 'over';
 var UNDER = 'under';
 var BETWEEN = 'between';
 
+var rAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function (cb) {
+  return setTimeout(cb, 1000 / 60);
+};
+
 var isObj = function isObj(o) {
   return o !== null && 'object' === (typeof o === 'undefined' ? 'undefined' : _typeof(o)) && !('nodeType' in o);
 };
@@ -146,7 +150,7 @@ var overunder = function overunder(type, delta) {
     currentPosition = returnPosition();
 
     if (!ticking) {
-      requestAnimationFrame(function () {
+      rAF(function () {
         return checkPosition(force);
       });
       ticking = true;

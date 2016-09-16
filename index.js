@@ -2,7 +2,7 @@ const OVER = 'over'
 const UNDER = 'under' 
 const BETWEEN = 'between' 
 
-const rAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || cb => setTimeout(cb, 1000 / 60)
+const rAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function(cb){ return setTimeout(cb, 1000 / 60) }
 
 const isObj = o => o !== null && 'object' === typeof o && !('nodeType' in o)
 
