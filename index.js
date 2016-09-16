@@ -2,6 +2,8 @@ const OVER = 'over'
 const UNDER = 'under' 
 const BETWEEN = 'between' 
 
+const rAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || cb => setTimeout(cb, 1000 / 60)
+
 const isObj = o => o !== null && 'object' === typeof o && !('nodeType' in o)
 
 const merge = (target, ...args) => {
@@ -100,7 +102,7 @@ const overunder = (type, delta, ...args) => {
     currentPosition = returnPosition() 
 
     if (!ticking) {
-      requestAnimationFrame(() => checkPosition(force))
+      rAF(() => checkPosition(force))
       ticking = true
     }
   }
