@@ -2,8 +2,6 @@ const OVER = 'over'
 const UNDER = 'under' 
 const BETWEEN = 'between' 
 
-const rAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function(cb){ return setTimeout(cb, 1000 / 60) }
-
 const isObj = o => o !== null && 'object' === typeof o && !('nodeType' in o)
 
 const merge = (target, ...args) => {
@@ -84,28 +82,6 @@ const overunder = (type, delta, ...args) => {
       writable: true
     }
   })
-
-  /**
-   * Add optional props to instance object
-   */
-  args.forEach(a => !!a ? addProps(instance, a) : null)
-
-  let currentPosition = returnPosition() 
-
-  return instance
-
-  function returnPosition(){
-    return isScroll ? returnScroll() : returnSize(instance.options.context, 'Width')
-  }
-
-  function requestPosition(force = false) {
-    currentPosition = returnPosition() 
-
-    if (!ticking) {
-      rAF(() => checkPosition(force))
-      ticking = true
-    }
-  }
 
   /**
    * @param {boolean} force Checks immediately
