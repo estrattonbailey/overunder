@@ -2,7 +2,7 @@
   "name": "overunder",
   "version": "1.1.0",
   "description": "A small waypoint library that emits events when you scroll to a specific element(s), or resize to a specified width.",
-  "main": "dist/overunder.js",
+  "main": "dist/index.js",
   "scripts": {
     "umd": "mkdir -p dist && browserify index.js --standalone overunder > dist/index.umd.js",
     "lint": "standard 'src/*.js'",
