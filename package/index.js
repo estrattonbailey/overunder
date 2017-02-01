@@ -45,8 +45,8 @@ class Overunder {
         this.checkPosition()
       }).update()
     } else {
-      this.listener = srraf[this.config.type === 'scroll' ? 'scroll' : 'resize'].use(({ curr }) => {
-        this.currentPosition = this.config.context ? (
+      this.listener = srraf[this.config.type].use(({ curr }) => {
+        this.currentPosition = this.config.type === 'resize' ? (
           getDimensions(this.config.context, 'Width')
         ) : curr
 
@@ -116,9 +116,8 @@ class Overunder {
     /**
      * Calculate final delta and range values
      */
-    const viewport = window.innerHeight 
-    delta = delta - offset + negativeOffset - viewport
-    range = range ? range - offset + negativeOffset - viewport : false
+    delta = delta - offset + negativeOffset
+    range = range ? range - offset + negativeOffset : false
 
     /**
      * Booleans
