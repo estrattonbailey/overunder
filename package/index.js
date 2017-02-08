@@ -1,10 +1,10 @@
 import srraf from 'srraf'
 import loop from 'loop.js'
 
-const isObj = o => o !== null && 'object' === typeof o && !('nodeType' in o)
+const isObj = o => o !== null && typeof o === 'object' && !('nodeType' in o)
 
 const merge = (target, ...args) => args.reduce((target, arg) => {
-  Object.keys(arg).forEach(k => target[k] = arg[k])
+  Object.keys(arg).forEach(k => { target[k] = arg[k] })
   return target
 }, target)
 
@@ -19,7 +19,7 @@ const getDimensions = (el, type) => el.window ? (
 )
 
 class Overunder {
-  constructor(type, delta, ...args) {
+  constructor (type, delta, ...args) {
     this.config = {
       type: type,
       context: window,
@@ -33,7 +33,7 @@ class Overunder {
 
     merge(this, loop())
 
-    args.forEach(a => !!a ? mergeOptions(this, a) : null)
+    args.forEach(a => a ? mergeOptions(this, a) : null)
 
     if (this.config.watchResize) {
       this.listener = srraf.use(({ currY, prevY, currX }) => {
@@ -56,33 +56,33 @@ class Overunder {
     }
   }
 
-  destroy() {
+  destroy () {
     this.listener.destroy()
   }
 
-  update(delta = null, ...args) {
+  update (delta = null, ...args) {
     /**
      * delta param could be obj or
      * just a delta value
      */
-    if (delta){
+    if (delta) {
       isObj(delta) ? mergeOptions(this, delta) : this.delta = delta
     }
 
     /**
      * Add optional props to instance object
      */
-    args.forEach(a => !!a ? mergeOptions(this, a) : null)
+    args.forEach(a => a ? mergeOptions(this, a) : null)
 
     return this
   }
 
-  check() {
+  check () {
     this.checkPosition(true)
     return this
   }
 
-  checkPosition(force = false) {
+  checkPosition (force = false) {
     if (this.config.paused) return
 
     /**
@@ -91,7 +91,7 @@ class Overunder {
     let delta = this.delta
     let range = this.range
 
-    if (typeof this.delta === 'object'){
+    if (typeof this.delta === 'object') {
       delta = this.config.type === 'scroll' ? (
         delta.getBoundingClientRect().top + this.currentPosition
       ) : (
@@ -99,7 +99,7 @@ class Overunder {
       )
     }
 
-    if (typeof this.range === 'object'){
+    if (typeof this.range === 'object') {
       range = this.config.type === 'scroll' ? (
         this.range.getBoundingClientRect().top + this.currentPosition
       ) : (
@@ -113,11 +113,11 @@ class Overunder {
     let offset = this.config.offset || null
     let negativeOffset = this.config.negativeOffset || null
 
-    if (offset && typeof offset === 'object'){
+    if (offset && typeof offset === 'object') {
       offset = getDimensions(offset, this.config.type === 'scroll' ? 'Height' : 'Width')
     }
 
-    if (negativeOffset && typeof negativeOffset === 'object'){
+    if (negativeOffset && typeof negativeOffset === 'object') {
       negativeOffset = getDimensions(negativeOffset, this.config.type === 'scroll' ? 'Height' : 'Width')
     }
 
@@ -151,24 +151,24 @@ class Overunder {
     const overForce = range ? overRange && force : overDelta && force
     const betweenForce = range && overDelta && underRange && force
 
-    if (under || underForce){
+    if (under || underForce) {
       this.position = 'under'
       this.emit(this.position, this)
-    } else if (between || betweenForce){
-      this.position = 'between' 
+    } else if (between || betweenForce) {
+      this.position = 'between'
       this.emit(this.position, this)
-    } else if (over || overForce){
-      this.position = 'over' 
+    } else if (over || overForce) {
+      this.position = 'over'
       this.emit(this.position, this)
     }
   }
 }
 
 export default {
-  scroll(delta, range, options) {
+  scroll (delta, range, options) {
     return new Overunder('scroll', delta, range, options)
   },
-  resize: (delta, range, options) => {
+  resize (delta, range, options) {
     return new Overunder('resize', delta, range, options)
   }
 }

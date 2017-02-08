@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "umd": "mkdir -p dist && browserify index.js --standalone overunder > dist/index.umd.js",
-    "lint": "standard 'src/*.js'",
+    "lint": "standard index.js",
     "prebuild": "npm run lint",
-    "build": "babel index.js -d dist/",
-    "watch": "babel -w index.js -d dist/",
+    "build": "NODE_ENV=production babel index.js -d dist/",
+    "watch": "NODE_ENV=development babel -w index.js -d dist/",
     "prepublish": "npm run build && npm run umd",
     "test": "ava test -v"
   },

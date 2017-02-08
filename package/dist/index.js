@@ -1,1 +1,226 @@
-'use strict';var _createClass=function(){function b(c,d){for(var f,e=0;e<d.length;e++)f=d[e],f.enumerable=f.enumerable||!1,f.configurable=!0,'value'in f&&(f.writable=!0),Object.defineProperty(c,f.key,f)}return function(c,d,e){return d&&b(c.prototype,d),e&&b(c,e),c}}(),_typeof='function'==typeof Symbol&&'symbol'==typeof Symbol.iterator?function(b){return typeof b}:function(b){return b&&'function'==typeof Symbol&&b.constructor===Symbol&&b!==Symbol.prototype?'symbol':typeof b},_srraf=require('srraf'),_srraf2=_interopRequireDefault(_srraf),_loop=require('loop.js'),_loop2=_interopRequireDefault(_loop);Object.defineProperty(exports,'__esModule',{value:!0});function _interopRequireDefault(b){return b&&b.__esModule?b:{default:b}}function _classCallCheck(b,c){if(!(b instanceof c))throw new TypeError('Cannot call a class as a function')}var isObj=function(b){return null!==b&&'object'===('undefined'==typeof b?'undefined':_typeof(b))&&!('nodeType'in b)},merge=function(b){for(var d=arguments.length,c=Array(1<d?d-1:0),e=1;e<d;e++)c[e-1]=arguments[e];return c.reduce(function(f,g){return Object.keys(g).forEach(function(h){return f[h]=g[h]}),f},b)},mergeOptions=function(b,c){isObj(c)?merge(b.config,c):b.range=c},getDimensions=function(b,c){return b.window?Math.max(b['inner'+c],b['outer'+c],document.documentElement['client'+c]):Math.max(b['offset'+c],b['client'+c])},Overunder=function(){function b(h,j){var p=this;_classCallCheck(this,b),this.config={type:h,context:window,offset:0,negativeOffset:0,watchResize:!1,paused:!1},this.delta=j,merge(this,(0,_loop2.default)());for(var m=arguments.length,l=Array(2<m?m-2:0),n=2;n<m;n++)l[n-2]=arguments[n];l.forEach(function(q){return q?mergeOptions(p,q):null}),this.listener=this.config.watchResize?_srraf2.default.use(function(_ref){var q=_ref.currY,r=_ref.prevY,s=_ref.currX,t=p.config.context?getDimensions(p.config.context):s;p.currentPosition='scroll'===p.config.type?q:t,p.checkPosition()}).update():_srraf2.default[this.config.type].use(function(_ref2){var q=_ref2.curr;p.currentPosition='resize'===p.config.type?getDimensions(p.config.context,'Width'):q,p.checkPosition()}).update()}return _createClass(b,[{key:'destroy',value:function destroy(){this.listener.destroy()}},{key:'update',value:function update(){var n=this,m=0<arguments.length&&void 0!==arguments[0]?arguments[0]:null;m&&(isObj(m)?mergeOptions(this,m):this.delta=m);for(var j=arguments.length,h=Array(1<j?j-1:0),l=1;l<j;l++)h[l-1]=arguments[l];return h.forEach(function(p){return p?mergeOptions(n,p):null}),this}},{key:'check',value:function check(){return this.checkPosition(!0),this}},{key:'checkPosition',value:function checkPosition(){var h=0<arguments.length&&void 0!==arguments[0]&&arguments[0];if(!this.config.paused){var j=this.delta,l=this.range;'object'===_typeof(this.delta)&&(j='scroll'===this.config.type?j.getBoundingClientRect().top+this.currentPosition:getDimensions(this.delta,'Width')),'object'===_typeof(this.range)&&(l='scroll'===this.config.type?this.range.getBoundingClientRect().top+this.currentPosition:getDimensions(this.range,'Width')||!1);var m=this.config.offset||null,n=this.config.negativeOffset||null;m&&'object'===('undefined'==typeof m?'undefined':_typeof(m))&&(m=getDimensions(m,'scroll'===this.config.type?'Height':'Width')),n&&'object'===('undefined'==typeof n?'undefined':_typeof(n))&&(n=getDimensions(n,'scroll'===this.config.type?'Height':'Width'));var p=window.innerHeight;j=j-p-m+n,l=!!l&&l-p-m+n;var q='under'!==this.position,r='over'!==this.position,s='between'!==this.position,t=this.currentPosition<j,u=this.currentPosition>=j,v=this.currentPosition<l,w=this.currentPosition>=l,y=l?w&&r:u&&r,z=l&&u&&v&&s,B=l?w&&h:u&&h,C=l&&u&&v&&h;t&&q||t&&h?(this.position='under',this.emit(this.position,this)):z||C?(this.position='between',this.emit(this.position,this)):(y||B)&&(this.position='over',this.emit(this.position,this))}}}]),b}();exports.default={scroll:function scroll(b,c,d){return new Overunder('scroll',b,c,d)},resize:function resize(b,c,d){return new Overunder('resize',b,c,d)}};
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _srraf = require('srraf');
+
+var _srraf2 = _interopRequireDefault(_srraf);
+
+var _loop = require('loop.js');
+
+var _loop2 = _interopRequireDefault(_loop);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var isObj = function isObj(o) {
+  return o !== null && (typeof o === 'undefined' ? 'undefined' : _typeof(o)) === 'object' && !('nodeType' in o);
+};
+
+var merge = function merge(target) {
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  return args.reduce(function (target, arg) {
+    Object.keys(arg).forEach(function (k) {
+      target[k] = arg[k];
+    });
+    return target;
+  }, target);
+};
+
+var mergeOptions = function mergeOptions(target, prop) {
+  isObj(prop) ? merge(target.config, prop) : target['range'] = prop;
+};
+
+var getDimensions = function getDimensions(el, type) {
+  return el.window ? Math.max(el['inner' + type], el['outer' + type], document.documentElement['client' + type]) : Math.max(el['offset' + type], el['client' + type]);
+};
+
+var Overunder = function () {
+  function Overunder(type, delta) {
+    var _this = this;
+
+    _classCallCheck(this, Overunder);
+
+    this.config = {
+      type: type,
+      context: window,
+      offset: 0,
+      negativeOffset: 0,
+      watchResize: false,
+      paused: false
+    };
+
+    this.delta = delta;
+
+    merge(this, (0, _loop2.default)());
+
+    for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+      args[_key2 - 2] = arguments[_key2];
+    }
+
+    args.forEach(function (a) {
+      return a ? mergeOptions(_this, a) : null;
+    });
+
+    if (this.config.watchResize) {
+      this.listener = _srraf2.default.use(function (_ref) {
+        var currY = _ref.currY,
+            prevY = _ref.prevY,
+            currX = _ref.currX;
+
+        var width = _this.config.context ? getDimensions(_this.config.context) : currX;
+
+        _this.currentPosition = _this.config.type === 'scroll' ? currY : width;
+
+        _this.checkPosition();
+      }).update();
+    } else {
+      this.listener = _srraf2.default[this.config.type].use(function (_ref2) {
+        var curr = _ref2.curr;
+
+        _this.currentPosition = _this.config.type === 'resize' ? getDimensions(_this.config.context, 'Width') : curr;
+
+        _this.checkPosition();
+      }).update();
+    }
+  }
+
+  _createClass(Overunder, [{
+    key: 'destroy',
+    value: function destroy() {
+      this.listener.destroy();
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var _this2 = this;
+
+      var delta = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+      /**
+       * delta param could be obj or
+       * just a delta value
+       */
+      if (delta) {
+        isObj(delta) ? mergeOptions(this, delta) : this.delta = delta;
+      }
+
+      /**
+       * Add optional props to instance object
+       */
+
+      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+        args[_key3 - 1] = arguments[_key3];
+      }
+
+      args.forEach(function (a) {
+        return a ? mergeOptions(_this2, a) : null;
+      });
+
+      return this;
+    }
+  }, {
+    key: 'check',
+    value: function check() {
+      this.checkPosition(true);
+      return this;
+    }
+  }, {
+    key: 'checkPosition',
+    value: function checkPosition() {
+      var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+      if (this.config.paused) return;
+
+      /**
+       * Delta and range values
+       */
+      var delta = this.delta;
+      var range = this.range;
+
+      if (_typeof(this.delta) === 'object') {
+        delta = this.config.type === 'scroll' ? delta.getBoundingClientRect().top + this.currentPosition : getDimensions(this.delta, 'Width');
+      }
+
+      if (_typeof(this.range) === 'object') {
+        range = this.config.type === 'scroll' ? this.range.getBoundingClientRect().top + this.currentPosition : getDimensions(this.range, 'Width') || false;
+      }
+
+      /**
+       * Offset values
+       */
+      var offset = this.config.offset || null;
+      var negativeOffset = this.config.negativeOffset || null;
+
+      if (offset && (typeof offset === 'undefined' ? 'undefined' : _typeof(offset)) === 'object') {
+        offset = getDimensions(offset, this.config.type === 'scroll' ? 'Height' : 'Width');
+      }
+
+      if (negativeOffset && (typeof negativeOffset === 'undefined' ? 'undefined' : _typeof(negativeOffset)) === 'object') {
+        negativeOffset = getDimensions(negativeOffset, this.config.type === 'scroll' ? 'Height' : 'Width');
+      }
+
+      /**
+       * Calculate final delta and range values
+       */
+      var viewport = window.innerHeight;
+      delta = delta - viewport - offset + negativeOffset;
+      range = range ? range - viewport - offset + negativeOffset : false;
+
+      /**
+       * Booleans
+       */
+      var notUnder = this.position !== 'under';
+      var notOver = this.position !== 'over';
+      var notBetween = this.position !== 'between';
+
+      var underDelta = this.currentPosition < delta;
+      var overDelta = this.currentPosition >= delta;
+
+      var underRange = this.currentPosition < range;
+      var overRange = this.currentPosition >= range;
+
+      /**
+       * Final booleans
+       */
+      var under = underDelta && notUnder;
+      var over = range ? overRange && notOver : overDelta && notOver;
+      var between = range && overDelta && underRange && notBetween;
+      var underForce = underDelta && force;
+      var overForce = range ? overRange && force : overDelta && force;
+      var betweenForce = range && overDelta && underRange && force;
+
+      if (under || underForce) {
+        this.position = 'under';
+        this.emit(this.position, this);
+      } else if (between || betweenForce) {
+        this.position = 'between';
+        this.emit(this.position, this);
+      } else if (over || overForce) {
+        this.position = 'over';
+        this.emit(this.position, this);
+      }
+    }
+  }]);
+
+  return Overunder;
+}();
+
+exports.default = {
+  scroll: function scroll(delta, range, options) {
+    return new Overunder('scroll', delta, range, options);
+  },
+  resize: function resize(delta, range, options) {
+    return new Overunder('resize', delta, range, options);
+  }
+};
