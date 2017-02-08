@@ -13,7 +13,7 @@ const mergeOptions = (target, prop) => {
 }
 
 const getDimensions = (el, type) => el.window ? (
-  Math.max(el[`outer${type}`], document.documentElement[`client${type}`])
+  Math.max(el[`inner${type}`], el[`outer${type}`], document.documentElement[`client${type}`])
 ) : (
   Math.max(el[`offset${type}`], el[`client${type}`])
 )
@@ -26,7 +26,7 @@ class Overunder {
       offset: 0,
       negativeOffset: 0,
       watchResize: false,
-      enterBottom: false
+      paused: false
     }
 
     this.delta = delta
@@ -40,6 +40,7 @@ class Overunder {
         const width = this.config.context ? (
           getDimensions(this.config.context)
         ) : currX
+
         this.currentPosition = this.config.type === 'scroll' ? currY : width
 
         this.checkPosition()
@@ -77,6 +78,8 @@ class Overunder {
   }
 
   checkPosition(force = false) {
+    if (this.config.paused) return
+
     /**
      * Delta and range values
      */
@@ -87,7 +90,7 @@ class Overunder {
       delta = this.config.type === 'scroll' ? (
         delta.getBoundingClientRect().top + this.currentPosition
       ) : (
-        returnSize(this.delta, 'Width')
+        getDimensions(this.delta, 'Width')
       )
     }
 
@@ -95,7 +98,7 @@ class Overunder {
       range = this.config.type === 'scroll' ? (
         this.range.getBoundingClientRect().top + this.currentPosition
       ) : (
-        returnSize(this.range, 'Width') || false
+        getDimensions(this.range, 'Width') || false
       )
     }
 
@@ -105,19 +108,20 @@ class Overunder {
     let offset = this.config.offset || null
     let negativeOffset = this.config.negativeOffset || null
 
-    if (typeof this.offset === 'object'){
-      offset = returnSize(this.offset, this.config.type === 'scroll' ? 'Height' : 'Width')
+    if (offset && typeof offset === 'object'){
+      offset = getDimensions(offset, this.config.type === 'scroll' ? 'Height' : 'Width')
     }
 
-    if (typeof this.negativeOffset === 'object'){
-      negativeOffset = returnSize(this.negativeOffset, this.config.type === 'scroll' ? 'Height' : 'Width')
+    if (negativeOffset && typeof negativeOffset === 'object'){
+      negativeOffset = getDimensions(negativeOffset, this.config.type === 'scroll' ? 'Height' : 'Width')
     }
 
     /**
      * Calculate final delta and range values
      */
-    delta = delta - offset + negativeOffset
-    range = range ? range - offset + negativeOffset : false
+    const viewport = window.innerHeight
+    delta = (delta - viewport) - offset + negativeOffset
+    range = range ? (range - viewport) - offset + negativeOffset : false
 
     /**
      * Booleans
