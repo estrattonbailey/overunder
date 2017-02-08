@@ -74,7 +74,12 @@ class Overunder {
      */
     args.forEach(a => !!a ? mergeOptions(this, a) : null)
 
+    return this
+  }
+
+  check() {
     this.checkPosition(true)
+    return this
   }
 
   checkPosition(force = false) {

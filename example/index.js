@@ -10,14 +10,9 @@ scroller.on('under', () => console.log('under'))
 scroller.on('between', () => console.log('between'))
 scroller.on('over', () => console.log('over'))
 
-scroller.update()
-
-setTimeout(() => {
-  scroller.update({paused: true})
-  setTimeout(() => {
-    scroller.update({paused: false})
-  }, 5000)
-}, 5000)
+scroller.update({
+  offset: 200,
+}).check()
 
 const viewport = window.innerHeight
 // window.addEventListener('scroll', e => console.log(window.scrollY))
