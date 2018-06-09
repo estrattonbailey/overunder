@@ -1,0 +1,33 @@
+{
+  "name": "overunder",
+  "version": "3.0.0",
+  "description": "Tiny waypoint library.",
+  "source": "index.js",
+  "module": "dist/overunder.es.js",
+  "main": "dist/overunder.js",
+  "umd:main": "dist/overunder.umd.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "microbundle build",
+    "watch": "microbundle watch",
+    "publish": "npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/estrattonbailey/overunder.git"
+  },
+  "author": "estrattonbailey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/estrattonbailey/overunder/issues"
+  },
+  "homepage": "https://github.com/estrattonbailey/overunder#readme",
+  "devDependencies": {
+    "microbundle": "^0.4.4"
+  },
+  "dependencies": {
+    "srraf": "^2.0.1"
+  }
+}
