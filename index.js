@@ -28,34 +28,34 @@ export default function overunder ({ x, x2, y, y2 }) {
 
     if (_x && w < _x && xpos !== 'under') {
       xpos = 'under'
-      emit('resize under')
+      emit('x under')
     } else if (_x2 && w >= _x && w < _x2 && xpos !== 'between') {
       xpos = 'between'
-      emit('resize between')
+      emit('x between')
     } else if (_x2 && w >= _x2 && xpos !== 'over') {
       xpos = 'over'
-      emit('resize over')
+      emit('x over')
     } else if (_x && !_x2 && w >= _x && xpos !== 'over') {
       xpos = 'over'
-      emit('resize over')
+      emit('x over')
     }
 
     if (_y && h < _y && ypos !== 'under') {
       ypos = 'under'
-      emit('scroll under')
+      emit('y under')
     } else if (_y2 && h >= _y && h < _y2 && ypos !== 'between') {
       ypos = 'between'
-      emit('scroll between')
+      emit('y between')
     } else if (_y2 && h >= _y2 && ypos !== 'over') {
       ypos = 'over'
-      emit('scroll over')
+      emit('y over')
     } else if (_y && !_y2 && h >= _y && ypos !== 'over') {
       ypos = 'over'
-      emit('scroll over')
+      emit('y over')
     }
   }
 
-  const scroller = srraf(getPosition)
+  const listener = srraf(getPosition)
 
   return {
     on,
@@ -69,10 +69,10 @@ export default function overunder ({ x, x2, y, y2 }) {
       x2 = nx2
       y = ny
       y2 = ny2
-      scroller.update()
+      listener.update()
     },
     destroy () {
-      scroller.destroy()
+      listener.destroy()
     }
   }
 }
