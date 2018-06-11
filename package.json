@@ -1,6 +1,6 @@
 {
   "name": "overunder",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Tiny waypoint library.",
   "source": "index.js",
   "module": "dist/overunder.es.js",
