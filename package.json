@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "microbundle build",
-    "watch": "microbundle watch",
+    "watch": "microbundle watch --compress false",
     "publish": "npm publish"
   },
   "repository": {
@@ -28,6 +28,6 @@
     "microbundle": "^0.4.4"
   },
   "dependencies": {
-    "srraf": "^2.0.1"
+    "srraf": "^3.1.2"
   }
 }

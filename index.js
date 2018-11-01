@@ -18,7 +18,7 @@ export default function overunder ({ x, x2, y, y2 }) {
   }
 
   function getPosition ({
-    x: w = window.innerWidth,
+    vw: w = window.innerWidth,
     y: h = window.pageYOffset
   }) {
     const _x = x ? x.clientWidth || x : null
